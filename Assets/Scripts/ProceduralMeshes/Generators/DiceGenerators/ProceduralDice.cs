@@ -57,9 +57,13 @@ public class ProceduralDice : MonoBehaviour
 
     void OnValidate() => enabled = true;
 
+    public delegate void OnNewGenerationEvent(Mesh mesh);
+    public event OnNewGenerationEvent OnNewGeneration;
+
     void Update()
     {
         GenerateMesh();
+        OnNewGeneration?.Invoke(_mesh);
         enabled = false;
 
         _diceGenerators[_diceGenerator].Resolution = _resolution;
