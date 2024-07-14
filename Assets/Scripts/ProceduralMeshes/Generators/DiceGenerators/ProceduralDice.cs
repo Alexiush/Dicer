@@ -71,6 +71,8 @@ public class ProceduralDice : MonoBehaviour
         _meshRenderer.material = _material;
     }
 
+    public int GetSelectedSide() => _diceGenerators[_diceGenerator].GetSelectedSide(transform, _mesh);
+
     [System.Flags]
     public enum GizmoMode
     {

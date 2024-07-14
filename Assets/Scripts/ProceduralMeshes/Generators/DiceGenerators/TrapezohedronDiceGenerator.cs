@@ -1,5 +1,8 @@
 using Nothke.Utils;
 using ProceduralMeshes.Streams;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
@@ -110,6 +113,22 @@ namespace ProceduralMeshes.Generators
             temporaryTexture.Release();
 
             return texture;
+        }
+
+        public int GetSelectedSide(Transform transform, Mesh mesh)
+        {
+            Func<IEnumerable<int>, Vector3> SideCenter = (indices) => indices
+                .Select(index => transform.rotation * mesh.vertices[index])
+                .Aggregate((acc, e) => acc + e) / 6;
+
+            var topmostSide = mesh.triangles
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / 6)
+                .Select(kv => (kv.Key, kv.ToList()))
+                .OrderByDescending(triangle => SideCenter(triangle.Item2.Select(v => v.Value)).y)
+                .First().Key;
+
+            return topmostSide + 1;
         }
 
         public void Execute<S>(int i, S streams) where S : struct, IMeshStreams

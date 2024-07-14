@@ -131,6 +131,11 @@ namespace ProceduralMeshes.Generators
             return texture;
         }
 
+        public int GetSelectedSide(Transform transform, Mesh mesh)
+        {
+            throw new NotImplementedException();
+        }
+
         // Sides (by corners) are:
         // 1 - 1, 2, 3
         // 2 - 1, 2, 4
