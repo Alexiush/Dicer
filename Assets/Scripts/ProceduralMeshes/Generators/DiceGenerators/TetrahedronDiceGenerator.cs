@@ -66,7 +66,7 @@ namespace ProceduralMeshes.Generators
                 0 => new Side { Top = GetCorner(0), Left = GetCorner(1), Right = GetCorner(2) },
                 1 => new Side { Top = GetCorner(0), Left = GetCorner(3), Right = GetCorner(1) },
                 2 => new Side { Top = GetCorner(0), Left = GetCorner(2), Right = GetCorner(3) },
-                3 => new Side { Top = GetCorner(1), Left = GetCorner(2), Right = GetCorner(3) },
+                3 => new Side { Top = GetCorner(3), Left = GetCorner(2), Right = GetCorner(1) },
                 _ => throw new System.Exception($"Tetrahedron has only four sides, indexed from 0 to 3. Received argument: {side}")
             };
         }
@@ -87,15 +87,26 @@ namespace ProceduralMeshes.Generators
             };
         }
 
-        private static Vector3 GetNumberAngle(int side)
+        private static Vector3 GetCornerAngle(int corner)
+        {
+            return corner switch
+            {
+                0 => new Vector3(0, 180, -60),
+                1 => new Vector3(180, 0, -120),
+                2 => new Vector3(180, 0, 0),
+                _ => throw new System.Exception($"Triangle has only three corners, indexed from 0 to 2. Received argument: {corner}")
+            };
+        }
+
+        private static Vector3 GetSideAngle(int side)
         {
             return side switch
             {
-                0 => new Vector3(0, 180, 0),
-                1 => new Vector3(180, 0, -120),
-                2 => new Vector3(180, 0, 120),
-                3 => new Vector3(180, 180, -120),
-                _ => throw new System.Exception($"Tetrahedron has only four sides, indexed from 0 to 3. Received argument: {side}")
+                0 => new Vector3(0, 0, 300),
+                1 => new Vector3(0, 0, 0),
+                2 => new Vector3(0, 0, -120),
+                3 => new Vector3(0, 0, 120),
+                _ => throw new System.Exception($"Tetrahedron has only four corners, indexed from 0 to 3. Received argument: {side}")
             };
         }
 
@@ -106,20 +117,36 @@ namespace ProceduralMeshes.Generators
 
             temporaryTexture.BeginOrthoRendering();
 
-            for (int i = 0; i < 4; i++)
+            for (int side = 0; side < 4; side++)
             {
-                TexSide texSide = GetTexSide(i);
+                TexSide texSide = GetTexSide(side);
+                var texCorners = new float2[] { texSide.Left, texSide.Top, texSide.Right };
                 float2 center = (texSide.Top + texSide.Left + texSide.Right) / 3;
-                Vector3 euler = GetNumberAngle(i);
 
-                // Draw the number i+1 in the center
-                // Set textMeshPro text and direction
-                text.text = (i + 1).ToString();
-                text.ForceMeshUpdate(true, true);
+                Side figureSide = GetSide(side);
+                var figureCorners = new float3[] { figureSide.Left, figureSide.Top, figureSide.Right };
 
-                var position = new Vector3(center.x, center.y, 0);
+                var sideEuler = GetSideAngle(side);
 
-                temporaryTexture.DrawTMPText(text, Matrix4x4.TRS(position, Quaternion.Euler(euler), Vector3.one));
+                for (int corner = 0; corner < 3; corner++)
+                {
+                    Vector3 cornerEuler = GetCornerAngle(corner);
+                    float2 offset = (texCorners[corner] - center) / 2;
+
+                    // Draw the number i+1 in the center
+                    // Set textMeshPro text and direction
+                    text.text = (Enumerable.Range(0, 4)
+                        .OrderBy(i => distancesq(GetCorner(i), figureCorners[corner]))
+                        .First() + 1)
+                        .ToString();
+
+                    text.ForceMeshUpdate(true, true);
+
+                    var position2d = center + offset;
+                    var position = new Vector3(position2d.x, position2d.y, 0);
+
+                    temporaryTexture.DrawTMPText(text, Matrix4x4.TRS(position, Quaternion.Euler(sideEuler + cornerEuler), Vector3.one * 0.5f));
+                }
             }
 
             temporaryTexture.EndRendering();
@@ -133,7 +160,12 @@ namespace ProceduralMeshes.Generators
 
         public int GetSelectedSide(Transform transform, Mesh mesh)
         {
-            throw new NotImplementedException();
+            var topmostVertex = mesh.vertices
+                .Select((x, i) => new { Index = i, Value = x })
+                .OrderByDescending(vertex => (transform.rotation * vertex.Value).y)
+                .First().Index;
+
+            return topmostVertex + 1;
         }
 
         // Sides (by corners) are:
