@@ -10,14 +10,15 @@ using Unity.Mathematics;
 using UnityEngine;
 
 using static Unity.Mathematics.math;
+using static UnityEngine.UI.GridLayoutGroup;
 
 namespace ProceduralMeshes.Generators
 {
     public struct TetrahedronDiceGenerator : IDiceGenerator
     {
-        public int VertexCount => 2 * (ActualDieSize + 1) * (ActualDieSize + 2);
-        public int IndexCount => 12 * ActualDieSize * ActualDieSize;
-        public int JobLength => ActualDieSize * ActualDieSize;
+        public int VertexCount => 2 * (Resolution + 1) * (Resolution + 2);
+        public int IndexCount => 12 * Resolution * Resolution;
+        public int JobLength => ActualDieSize;
         public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
         public int Resolution { get; set; }
 
@@ -174,10 +175,9 @@ namespace ProceduralMeshes.Generators
 
         public int GetSelectedSide(Transform transform, Mesh mesh)
         {
-            var topmostVertex = mesh.vertices
-                .Select((x, i) => new { Index = i, Value = x })
-                .OrderByDescending(vertex => (transform.rotation * vertex.Value).y)
-                .First().Index;
+            var topmostVertex = Enumerable.Range(0, 4)
+                .OrderByDescending(i => (transform.rotation * GetCorner(i)).y)
+                .First();
 
             return topmostVertex + 1;
         }
@@ -289,123 +289,45 @@ namespace ProceduralMeshes.Generators
 
         public void Execute<S>(int index, S streams) where S : struct, IMeshStreams
         {
-            // Each job creates nth triangle on each side 
+            // Get the current set of vertices
 
-            // For each side
-            for (int side = 0; side < 4; side++)
+            var viOffset = index * (Resolution + 1) * (Resolution + 2) / 2;
+            var tiOffset = index * Resolution * Resolution;
+
+            Side corners = GetSide(index);
+            TexSide texCorners = GetTexSide(index);
+
+            var left = new Vertex
             {
-                // Get the current set of vertices
+                position = corners.Left,
+                texCoord0 = texCorners.Left,
+                normal = corners.Left
+            };
+            float3 rightDirection = Vector3.Cross((corners.Top - 0), (left.normal - 0)).normalized;
+            left.tangent.xz = rightDirection.xz;
+            left.tangent.w = -1f;
 
-                var viOffset = side * (ActualDieSize + 1) * (ActualDieSize + 2) / 2;
-                var tiOffset = side * ActualDieSize * ActualDieSize;
+            var top = new Vertex
+            {
+                position = corners.Top,
+                texCoord0 = texCorners.Top,
+                normal = corners.Top
+            };
+            rightDirection = Vector3.Cross((corners.Top - 0), (top.normal - 0)).normalized;
+            left.tangent.xz = rightDirection.xz;
+            left.tangent.w = -1f;
 
-                // If the index is 0 all three indices added
-                // If the index is of the leftmost triangle on the level it's left and right indices are needed
-                // If the index is of the even triangle on level only the right vertex is needed
-                // If the index is of the odd triangle on level no new vertices are needed
+            var right = new Vertex
+            {
+                position = corners.Right,
+                texCoord0 = texCorners.Right,
+                normal = corners.Right
+            };
+            rightDirection = Vector3.Cross((corners.Top - 0), (right.normal - 0)).normalized;
+            left.tangent.xz = rightDirection.xz;
+            left.tangent.w = -1f;
 
-                var level = GetTriangleLevel(index);
-                var leftOffset = index - TriangleLevel(level);
-                var vertex = new Vertex();
-                var triangle = new Triangle(); 
-
-                // Normal and tangent vectors must be the same for one side
-                // So they can be safely stated after the vertex creation
-                
-                var corners = GetSide(side);
-                vertex.normal = GetCorner(side);
-                // vertex.normal = Vector3.Cross((corners.Left - corners.Top), (corners.Right - corners.Top)).normalized;
-
-                float3 rightDirection = Vector3.Cross((corners.Top - 0), (vertex.normal - 0)).normalized;
-                vertex.tangent.xz = rightDirection.xz;
-                vertex.tangent.w = -1f;
-
-                if (index == 0)
-                {
-                    triangle = new Triangle
-                    {
-                        Zeroth = 0,
-                        First = 1,
-                        Second = 2,
-                    };
-
-                    // Add 0, 1, 2 vertices
-                    vertex.position = GetVertex(side, triangle.Zeroth);
-                    vertex.texCoord0 = GetVertexTex(side, triangle.Zeroth);
-                    if (ActualDieSize == 1)
-                    {
-                        vertex.normal = vertex.position;
-                        vertex.tangent.xz = GetTangentXZ(vertex.position);
-                    }
-
-                    streams.SetVertex(viOffset + triangle.Zeroth, vertex);
-
-                    vertex.position = GetVertex(side, triangle.First);
-                    vertex.texCoord0 = GetVertexTex(side, triangle.First);
-                    if (ActualDieSize == 1)
-                    {
-                        vertex.normal = vertex.position;
-                        vertex.tangent.xz = GetTangentXZ(vertex.position);
-                    }
-
-                    streams.SetVertex(viOffset + triangle.First, vertex);
-
-                    vertex.position = GetVertex(side, triangle.Second);
-                    vertex.texCoord0 = GetVertexTex(side, triangle.Second);
-                    if (ActualDieSize == 1)
-                    {
-                        vertex.normal = vertex.position;
-                        vertex.tangent.xz = GetTangentXZ(vertex.position);
-                    }
-
-                    streams.SetVertex(viOffset + triangle.Second, vertex);
-                }
-                else if (leftOffset == 0)
-                {
-                    triangle = new Triangle
-                    {
-                        Zeroth = VertexLevel(level + 1) - level - 1,
-                        First = VertexLevel(level + 1),
-                        Second = VertexLevel(level + 1) + 1,
-                    };
-
-                    // Add _levels[level], _levels[level] + 1
-                    vertex.position = GetVertex(side, triangle.First);
-                    vertex.texCoord0 = GetVertexTex(side, triangle.First);
-                    streams.SetVertex(viOffset + triangle.First, vertex);
-
-                    vertex.position = GetVertex(side, triangle.Second);
-                    vertex.texCoord0 = GetVertexTex(side, triangle.Second);
-                    streams.SetVertex(viOffset + triangle.Second, vertex);
-                }
-                else if (leftOffset % 2 == 0)
-                {
-                    triangle = new Triangle
-                    {
-                        Zeroth = index - VertexLevel(level - 1) - leftOffset / 2,
-                        First = index - VertexLevel(level - 1) - leftOffset / 2 + level + 1,
-                        Second = index - VertexLevel(level - 1) - leftOffset / 2 + level + 2,
-                    };
-
-                    // Add _levels[level] + leftOffset
-                    vertex.position = GetVertex(side, triangle.Second);
-                    vertex.texCoord0 = GetVertexTex(side, triangle.Second);
-                    streams.SetVertex(viOffset + triangle.Second, vertex);
-                }
-                else
-                {
-                    triangle = new Triangle
-                    {
-                        Zeroth = VertexLevel(level + 1) + (leftOffset + 1) / 2,
-                        First = VertexLevel(level + 1) + (leftOffset + 1) / 2 - level - 1,
-                        Second = VertexLevel(level + 1) + (leftOffset + 1) / 2 - level - 2,
-                    };
-
-                    // Do not add vertices
-                }
-
-                streams.SetTriangle(tiOffset + index, viOffset + triangle.Front);
-            }
+            ResolutionUtils.FitTriangle((left, viOffset), (top, viOffset + 1), (right, viOffset + 2), streams, Resolution, tiOffset);
         }
     }
 }

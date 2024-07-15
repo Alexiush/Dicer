@@ -37,7 +37,7 @@ namespace ProceduralMeshes.Generators
         }
 
         private static readonly float _apexDelta = 1.0f;
-        private readonly float _texTiling => 1.0f / (ActualDieSize + 2);
+        private float _texTiling => 1.0f / (ActualDieSize + 2);
         public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;
         public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;
 

@@ -177,7 +177,7 @@ MonoBehaviour:
   _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
   _textMeshPro: {fileID: 1172409111}
   _gizmos: 0
-  _resolution: 1
+  _resolution: 2
   _dieSize: 4
   _meshOptimization: 0
 --- !u!23 &582158412

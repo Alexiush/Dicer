@@ -37,7 +37,7 @@ namespace ProceduralMeshes.Generators
 
         private float BaseDelta => (1 - sin((90 - Angle / 2) * Mathf.Deg2Rad)) / (1 + sin((90 - Angle / 2) * Mathf.Deg2Rad));
         private static readonly float _apexDelta = 1.0f;
-        private readonly float _texTiling => 1.0f / (ActualDieSize + 2);
+        private float _texTiling => 1.0f / (ActualDieSize + 2);
         public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<TrapezohedronDiceGenerator, MultiStream>.ScheduleParallel;
         public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<TrapezohedronDiceGenerator, MultiStream>.ScheduleParallel;
 
