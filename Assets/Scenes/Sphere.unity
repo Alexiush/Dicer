@@ -178,6 +178,7 @@ MonoBehaviour:
   _textMeshPro: {fileID: 1172409111}
   _gizmos: 0
   _resolution: 1
+  _dieSize: 4
   _meshOptimization: 0
 --- !u!23 &582158412
 MeshRenderer:

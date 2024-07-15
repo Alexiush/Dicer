@@ -10,11 +10,11 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class ProceduralDice : MonoBehaviour
 {
-    private Dictionary<string, MeshJobScheduleDelegate> _meshBuildingJobs = AppDomain.CurrentDomain
+    private Dictionary<string, DieMeshJobScheduleDelegate> _dieBuildingJobs = AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(a => a.GetTypes())
         .Where(t => t.GetInterfaces().Contains(typeof(IDiceGenerator)))
-        .ToDictionary(keySelector: t => t.Name, elementSelector: t => (Activator.CreateInstance(t) as IDiceGenerator).DefaultJobHandle);
+        .ToDictionary(keySelector: t => t.Name, elementSelector: t => (Activator.CreateInstance(t) as IDiceGenerator).DefaultDieJobHandle);
 
 
     private Dictionary<string, IDiceGenerator> _diceGenerators = AppDomain.CurrentDomain
@@ -23,7 +23,7 @@ public class ProceduralDice : MonoBehaviour
         .Where(t => t.GetInterfaces().Contains(typeof(IDiceGenerator)))
         .ToDictionary(keySelector: t => t.Name, elementSelector: t => (Activator.CreateInstance(t) as IDiceGenerator));
 
-    private List<string> DiceGeneratorJobs => _meshBuildingJobs.Keys.ToList();
+    private List<string> DiceGeneratorJobs => _dieBuildingJobs.Keys.ToList();
 
     [SerializeField, Dropdown("DiceGeneratorJobs")]
     private string _diceGenerator;
@@ -62,12 +62,24 @@ public class ProceduralDice : MonoBehaviour
 
     void Update()
     {
+        var generator = _diceGenerators[_diceGenerator];
+
+        generator.Resolution = _resolution;
+        generator.DieSize = _dieSize;
+
+        if (!generator.Validate())
+        {
+            Debug.LogError("Invalid die data");
+            enabled = false;
+
+            return;
+        }
+
         GenerateMesh();
         OnNewGeneration?.Invoke(_mesh);
         enabled = false;
 
-        _diceGenerators[_diceGenerator].Resolution = _resolution;
-        _material.SetTexture("_Mask", _diceGenerators[_diceGenerator].GenerateNumbersTexture(256, 256, _textMeshPro));
+        _material.SetTexture("_Mask", generator.GenerateNumbersTexture(256, 256, _textMeshPro));
         _meshRenderer.material = _material;
     }
 
@@ -149,8 +161,10 @@ public class ProceduralDice : MonoBehaviour
         }
     }
 
-    [SerializeField, Range(1, 50)]
+    [SerializeField, Range(1, 5)]
     private int _resolution = 1;
+    [SerializeField, Range(1, 100)]
+    private int _dieSize = 1;
 
     [System.Flags]
     public enum MeshOptimizationMode
@@ -173,7 +187,7 @@ public class ProceduralDice : MonoBehaviour
             _diceGenerator = DiceGeneratorJobs[0];
         }
 
-        _meshBuildingJobs[_diceGenerator](_mesh, meshData, _resolution, default).Complete();
+        _dieBuildingJobs[_diceGenerator](_mesh, meshData, _resolution, _dieSize, default).Complete();
 
         Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
 

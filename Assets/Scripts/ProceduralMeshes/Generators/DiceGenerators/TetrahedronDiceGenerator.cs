@@ -15,13 +15,27 @@ namespace ProceduralMeshes.Generators
 {
     public struct TetrahedronDiceGenerator : IDiceGenerator
     {
-        public int VertexCount => 2 * (Resolution + 1) * (Resolution + 2);
-        public int IndexCount => 12 * Resolution * Resolution;
-        public int JobLength => Resolution * Resolution;
+        public int VertexCount => 2 * (ActualDieSize + 1) * (ActualDieSize + 2);
+        public int IndexCount => 12 * ActualDieSize * ActualDieSize;
+        public int JobLength => ActualDieSize * ActualDieSize;
         public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
         public int Resolution { get; set; }
 
+        public int DieSize {  get; set; }
+
+        // Is expected to be used for only one valid state
+        public int ActualDieSize => DieSize;
+
+        public bool Validate()
+        {
+            bool validSize = DieSize == 4;
+            bool validResolution = Resolution > 0;
+
+            return validSize && validResolution;
+        }
+
         public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<TetrahedronDiceGenerator, MultiStream>.ScheduleParallel;
+        public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<TetrahedronDiceGenerator, MultiStream>.ScheduleParallel;
 
         private static float3 GetCorner(int index)
         {
@@ -180,7 +194,7 @@ namespace ProceduralMeshes.Generators
         {
             int level = 0;
 
-            for (int i = 1; i <= Resolution; ++i)
+            for (int i = 1; i <= ActualDieSize; ++i)
             {
                 if (TriangleLevel(i) > index)
                 {
@@ -199,7 +213,7 @@ namespace ProceduralMeshes.Generators
         {
             int level = 0;
 
-            for (int i = 1; i <= Resolution; ++i)
+            for (int i = 1; i <= ActualDieSize; ++i)
             {
                 if (VertexLevel(i) > index)
                 {
@@ -234,8 +248,8 @@ namespace ProceduralMeshes.Generators
             }
 
             // Get the left and right sides of the level baseline
-            var leftSide = side.Top + (side.Left - side.Top) * level / Resolution;
-            var rightSide = side.Top + (side.Right - side.Top) * level / Resolution;
+            var leftSide = side.Top + (side.Left - side.Top) * level / ActualDieSize;
+            var rightSide = side.Top + (side.Right - side.Top) * level / ActualDieSize;
 
             // Get the vertex based on it's position on the line
             var triangleSide = (rightSide - leftSide) / level;
@@ -259,8 +273,8 @@ namespace ProceduralMeshes.Generators
             }
 
             // Get the left and right sides of the level baseline
-            var leftSide = side.Top + (side.Left - side.Top) * level / Resolution;
-            var rightSide = side.Top + (side.Right - side.Top) * level / Resolution;
+            var leftSide = side.Top + (side.Left - side.Top) * level / ActualDieSize;
+            var rightSide = side.Top + (side.Right - side.Top) * level / ActualDieSize;
 
             // Get the vertex based on it's position on the line
             var triangleSide = (rightSide - leftSide) / level;
@@ -282,8 +296,8 @@ namespace ProceduralMeshes.Generators
             {
                 // Get the current set of vertices
 
-                var viOffset = side * (Resolution + 1) * (Resolution + 2) / 2;
-                var tiOffset = side * Resolution * Resolution;
+                var viOffset = side * (ActualDieSize + 1) * (ActualDieSize + 2) / 2;
+                var tiOffset = side * ActualDieSize * ActualDieSize;
 
                 // If the index is 0 all three indices added
                 // If the index is of the leftmost triangle on the level it's left and right indices are needed
@@ -318,7 +332,7 @@ namespace ProceduralMeshes.Generators
                     // Add 0, 1, 2 vertices
                     vertex.position = GetVertex(side, triangle.Zeroth);
                     vertex.texCoord0 = GetVertexTex(side, triangle.Zeroth);
-                    if (Resolution == 1)
+                    if (ActualDieSize == 1)
                     {
                         vertex.normal = vertex.position;
                         vertex.tangent.xz = GetTangentXZ(vertex.position);
@@ -328,7 +342,7 @@ namespace ProceduralMeshes.Generators
 
                     vertex.position = GetVertex(side, triangle.First);
                     vertex.texCoord0 = GetVertexTex(side, triangle.First);
-                    if (Resolution == 1)
+                    if (ActualDieSize == 1)
                     {
                         vertex.normal = vertex.position;
                         vertex.tangent.xz = GetTangentXZ(vertex.position);
@@ -338,7 +352,7 @@ namespace ProceduralMeshes.Generators
 
                     vertex.position = GetVertex(side, triangle.Second);
                     vertex.texCoord0 = GetVertexTex(side, triangle.Second);
-                    if (Resolution == 1)
+                    if (ActualDieSize == 1)
                     {
                         vertex.normal = vertex.position;
                         vertex.tangent.xz = GetTangentXZ(vertex.position);

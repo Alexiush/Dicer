@@ -14,17 +14,34 @@ namespace ProceduralMeshes.Generators
 {
     public struct BipyramidDiceGenerator : IDiceGenerator
     {
-        public int VertexCount => 2 *  (2 * Resolution + 1);
-        public int IndexCount => 6 * Resolution;
-        public int JobLength => Resolution;
+        public int VertexCount => 2 *  (2 * ActualDieSize + 1);
+        public int IndexCount => 6 * ActualDieSize;
+        public int JobLength => ActualDieSize;
         public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
         public int Resolution { get; set; }
+        public int DieSize { get; set; }
+        public int ActualDieSize
+        {
+            get
+            {
+                return DieSize % 2 == 0 ? DieSize : DieSize * 2;
+            }
+        }
+
+        public bool Validate()
+        {
+            bool validSize = DieSize % 4 == 0 && DieSize >= 8;
+            bool validResolution = Resolution > 0;
+
+            return validSize && validResolution;
+        }
 
         private static readonly float _apexDelta = 1.0f;
-        private readonly float _texTiling => 1.0f / (Resolution + 2);
+        private readonly float _texTiling => 1.0f / (ActualDieSize + 2);
         public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;
+        public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;
 
-        private float Angle => 360f / Resolution;
+        private float Angle => 360f / ActualDieSize;
         private float3 GetPolygonVertexPosition(int i) => new float3(
             -sin(Angle * i * Mathf.Deg2Rad),
             0,
@@ -37,18 +54,18 @@ namespace ProceduralMeshes.Generators
 
         private float2 GetTexCoord(int i)
         {
-            if (i > Resolution * 2)
+            if (i > ActualDieSize * 2)
             {
-                i -= Resolution * 2;
+                i -= ActualDieSize * 2;
             }
 
             if (i % 2 == 0)
             {
-                return new float2(1, 1 - i / (2 * (Resolution + 1f/2)));
+                return new float2(1, 1 - i / (2 * (ActualDieSize + 1f/2)));
             }
             else
             {
-                return new float2(0, (2 * Resolution + 1 - i) / (2 * (Resolution + 1f / 2)));
+                return new float2(0, (2 * ActualDieSize + 1 - i) / (2 * (ActualDieSize + 1f / 2)));
             }
         }
 
@@ -58,19 +75,19 @@ namespace ProceduralMeshes.Generators
             var temporaryTexture = RenderTexture.GetTemporary(width, height);
 
             temporaryTexture.BeginOrthoRendering();
-            float offset = 1f / (2 * Resolution + 1);
+            float offset = 1f / (2 * ActualDieSize + 1);
 
-            var size = 3f / (Resolution + 1 / 2f);
+            var size = 3f / (ActualDieSize + 1 / 2f);
 
             var initialFontSize = text.fontSize;
 
-            for (int i = 0; i < Resolution * 2; i++)
+            for (int i = 0; i < ActualDieSize * 2; i++)
             {
                 float2 center;
                 Vector3 euler;
-                float totalOffset = offset * (2 * ((i % Resolution) + 1f/2));
+                float totalOffset = offset * (2 * ((i % ActualDieSize) + 1f/2));
 
-                if (i < Resolution)
+                if (i < ActualDieSize)
                 {
                     // Upper pass
 
@@ -152,10 +169,10 @@ namespace ProceduralMeshes.Generators
 
             int vertexOffset = i * 2 + 1;
 
-            vertex.position = GetPolygonVertexPosition((i + 1) % Resolution);
+            vertex.position = GetPolygonVertexPosition((i + 1) % ActualDieSize);
 
             vertex.normal = normalize(vertex.position);
-            vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % Resolution);
+            vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % ActualDieSize);
             vertex.texCoord0 = GetTexCoord(vertexOffset + 1);
 
             // Add the vertex
@@ -176,10 +193,10 @@ namespace ProceduralMeshes.Generators
 
             int inverseVertexOffset = VertexCount - 1 - vertexOffset;
 
-            vertex.position = GetPolygonVertexPosition((i + 1) % Resolution);
+            vertex.position = GetPolygonVertexPosition((i + 1) % ActualDieSize);
 
             vertex.normal = normalize(vertex.position);
-            vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % Resolution);
+            vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % ActualDieSize);
             vertex.texCoord0 = GetTexCoord(inverseVertexOffset - 1);
 
             // Add the vertex
@@ -193,7 +210,7 @@ namespace ProceduralMeshes.Generators
 
             streams.SetVertex(inverseVertexOffset, vertex);
 
-            streams.SetTriangle(Resolution + i, new int3(inverseVertexOffset + 1, inverseVertexOffset - 1, inverseVertexOffset));
+            streams.SetTriangle(ActualDieSize + i, new int3(inverseVertexOffset + 1, inverseVertexOffset - 1, inverseVertexOffset));
         }
     }
 }

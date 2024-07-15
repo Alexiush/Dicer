@@ -13,18 +13,35 @@ namespace ProceduralMeshes.Generators
 {
     public struct TrapezohedronDiceGenerator : IDiceGenerator
     {
-        public int VertexCount => 2 * (3 * Resolution + 2);
-        public int IndexCount => 12 * Resolution;
-        public int JobLength => Resolution;
+        public int VertexCount => 2 * (3 * ActualDieSize + 2);
+        public int IndexCount => 12 * ActualDieSize;
+        public int JobLength => ActualDieSize;
         public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
         public int Resolution { get; set; }
+        public int DieSize { get; set; }
+        public int ActualDieSize
+        {
+            get
+            {
+                return DieSize % 2 == 0 ? DieSize : DieSize * 2;
+            }
+        }
+
+        public bool Validate()
+        {
+            bool validSize = DieSize % 4 != 0 && DieSize >= 6;
+            bool validResolution = Resolution > 0;
+
+            return validSize && validResolution;
+        }
 
         private float BaseDelta => (1 - sin((90 - Angle / 2) * Mathf.Deg2Rad)) / (1 + sin((90 - Angle / 2) * Mathf.Deg2Rad));
         private static readonly float _apexDelta = 1.0f;
-        private readonly float _texTiling => 1.0f / (Resolution + 2);
+        private readonly float _texTiling => 1.0f / (ActualDieSize + 2);
         public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<TrapezohedronDiceGenerator, MultiStream>.ScheduleParallel;
+        public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<TrapezohedronDiceGenerator, MultiStream>.ScheduleParallel;
 
-        private float Angle => 360f / Resolution;
+        private float Angle => 360f / ActualDieSize;
         private float Shift => Angle / 2;
         private float3 GetUpperPolygonVertex(int i) => new float3(
             - sin(Angle * i * Mathf.Deg2Rad),
@@ -48,18 +65,18 @@ namespace ProceduralMeshes.Generators
 
         private float2 GetTexCoord(int i)
         {
-            if (i > Resolution * 2)
+            if (i > ActualDieSize * 2)
             {
-                i -= Resolution * 2;
+                i -= ActualDieSize * 2;
             }
 
             if (i % 2 == 0)
             {
-                return new float2(1, 1 - i / (2 * (Resolution + 1f / 2)));
+                return new float2(1, 1 - i / (2 * (ActualDieSize + 1f / 2)));
             }
             else
             {
-                return new float2(0, (2 * Resolution + 1 - i) / (2 * (Resolution + 1f / 2)));
+                return new float2(0, (2 * ActualDieSize + 1 - i) / (2 * (ActualDieSize + 1f / 2)));
             }
         }
 
@@ -69,19 +86,19 @@ namespace ProceduralMeshes.Generators
             var temporaryTexture = RenderTexture.GetTemporary(width, height);
 
             temporaryTexture.BeginOrthoRendering();
-            float offset = 1f / (2 * Resolution + 1);
+            float offset = 1f / (2 * ActualDieSize + 1);
 
-            var size = 3f / (Resolution + 1 / 2f);
+            var size = 3f / (ActualDieSize + 1 / 2f);
 
             var initialFontSize = text.fontSize;
 
-            for (int i = 0; i < Resolution * 2; i++)
+            for (int i = 0; i < ActualDieSize * 2; i++)
             {
                 float2 center;
                 Vector3 euler;
-                float totalOffset = offset * (2 * ((i % Resolution) + 1f / 2));
+                float totalOffset = offset * (2 * ((i % ActualDieSize) + 1f / 2));
 
-                if (i < Resolution)
+                if (i < ActualDieSize)
                 {
                     // Upper pass
 
@@ -157,7 +174,7 @@ namespace ProceduralMeshes.Generators
 
                 vertex.normal = normalize(vertex.position);
                 vertex.tangent.xz = GetBottomPolygonVertexTangent(i);
-                vertex.texCoord0 = GetTexCoord(4 * Resolution + 1);
+                vertex.texCoord0 = GetTexCoord(4 * ActualDieSize + 1);
 
                 // Add the vertex
                 streams.SetVertex(VertexCount - 1, vertex);
@@ -172,12 +189,12 @@ namespace ProceduralMeshes.Generators
             int inverseVertexOffset = VertexCount - 1 - vertexOffset;
 
             int textureOffset = i * 2 + 1;
-            int inverseTextureOffset = 4 * Resolution + 1 - textureOffset;
+            int inverseTextureOffset = 4 * ActualDieSize + 1 - textureOffset;
 
-            vertex.position = GetUpperPolygonVertex((i + 1) % Resolution);
+            vertex.position = GetUpperPolygonVertex((i + 1) % ActualDieSize);
 
             vertex.normal = normalize(vertex.position);
-            vertex.tangent.xz = GetUpperPolygonVertexTangent((i + 1) % Resolution);
+            vertex.tangent.xz = GetUpperPolygonVertexTangent((i + 1) % ActualDieSize);
             vertex.texCoord0 = GetTexCoord(textureOffset + 1);
 
             // Add the vertex
@@ -201,10 +218,10 @@ namespace ProceduralMeshes.Generators
             // Add the triangle to an apex
             streams.SetTriangle(i * 2, new int3(vertexOffset, vertexOffset - 2, vertexOffset + 1));
 
-            vertex.position = GetBottomPolygonVertex((i + 1) % Resolution);
+            vertex.position = GetBottomPolygonVertex((i + 1) % ActualDieSize);
 
             vertex.normal = normalize(vertex.position);
-            vertex.tangent.xz = GetBottomPolygonVertexTangent((i + 1) % Resolution);
+            vertex.tangent.xz = GetBottomPolygonVertexTangent((i + 1) % ActualDieSize);
             vertex.texCoord0 = GetTexCoord(inverseTextureOffset - 1);
 
             // Add the vertex
@@ -214,7 +231,7 @@ namespace ProceduralMeshes.Generators
             streams.SetVertex(inverseVertexOffset - 2, vertex);
 
             // Add the triangle to it's opposite
-            streams.SetTriangle(2 * (Resolution + i) + 1, new int3(inverseVertexOffset - 2, vertexOffset - 1, inverseVertexOffset + 1));
+            streams.SetTriangle(2 * (ActualDieSize + i) + 1, new int3(inverseVertexOffset - 2, vertexOffset - 1, inverseVertexOffset + 1));
 
             vertex.position = Vector3.down * _apexDelta;
             // Normal is below, tangent is backward
@@ -224,7 +241,7 @@ namespace ProceduralMeshes.Generators
 
             streams.SetVertex(inverseVertexOffset, vertex);
 
-            streams.SetTriangle(2 * (Resolution + i), new int3(inverseVertexOffset - 1, inverseVertexOffset + 2, inverseVertexOffset));
+            streams.SetTriangle(2 * (ActualDieSize + i), new int3(inverseVertexOffset - 1, inverseVertexOffset + 2, inverseVertexOffset));
             
         }
     }
