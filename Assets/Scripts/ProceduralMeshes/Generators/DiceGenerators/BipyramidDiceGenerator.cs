@@ -14,9 +14,9 @@ namespace ProceduralMeshes.Generators
 {
     public struct BipyramidDiceGenerator : IDiceGenerator
     {
-        public int VertexCount => 2 *  (2 * ActualDieSize + 1);
-        public int IndexCount => 6 * ActualDieSize;
-        public int JobLength => ActualDieSize;
+        public int VertexCount => ActualDieSize * ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2;
+        public int IndexCount => 3 * ActualDieSize * Resolution * Resolution;
+        public int JobLength => ActualDieSize / 2;
         public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
         public int Resolution { get; set; }
         public int DieSize { get; set; }
@@ -41,7 +41,7 @@ namespace ProceduralMeshes.Generators
         public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;
         public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;
 
-        private float Angle => 360f / ActualDieSize;
+        private float Angle => 360f / (ActualDieSize / 2);
         private float3 GetPolygonVertexPosition(int i) => new float3(
             -sin(Angle * i * Mathf.Deg2Rad),
             0,
@@ -54,18 +54,18 @@ namespace ProceduralMeshes.Generators
 
         private float2 GetTexCoord(int i)
         {
-            if (i > ActualDieSize * 2)
+            if (i > ActualDieSize)
             {
-                i -= ActualDieSize * 2;
+                i -= ActualDieSize;
             }
 
             if (i % 2 == 0)
             {
-                return new float2(1, 1 - i / (2 * (ActualDieSize + 1f/2)));
+                return new float2(1, 1 - i / (2 * (ActualDieSize / 2 + 1f / 2)));
             }
             else
             {
-                return new float2(0, (2 * ActualDieSize + 1 - i) / (2 * (ActualDieSize + 1f / 2)));
+                return new float2(0, (ActualDieSize + 1 - i) / (2 * (ActualDieSize / 2 + 1f / 2)));
             }
         }
 
@@ -75,19 +75,19 @@ namespace ProceduralMeshes.Generators
             var temporaryTexture = RenderTexture.GetTemporary(width, height);
 
             temporaryTexture.BeginOrthoRendering();
-            float offset = 1f / (2 * ActualDieSize + 1);
+            float offset = 1f / (ActualDieSize + 1);
 
-            var size = 3f / (ActualDieSize + 1 / 2f);
+            var size = 3f / (ActualDieSize / 2 + 1 / 4f);
 
             var initialFontSize = text.fontSize;
 
-            for (int i = 0; i < ActualDieSize * 2; i++)
+            for (int i = 0; i < ActualDieSize; i++)
             {
                 float2 center;
                 Vector3 euler;
-                float totalOffset = offset * (2 * ((i % ActualDieSize) + 1f/2));
+                float totalOffset = offset * 2 * ((i % (ActualDieSize / 2)) + 1f/2);
 
-                if (i < ActualDieSize)
+                if (i < ActualDieSize / 2)
                 {
                     // Upper pass
 
@@ -134,7 +134,7 @@ namespace ProceduralMeshes.Generators
                 .OrderByDescending(triangle => TriangleCenter(triangle.Item2.Select(v => v.Value)).y)
                 .First().Key;
 
-            return topmostTriangle + 1;
+            return (topmostTriangle) / (Resolution * Resolution) + 1;
         }
 
         public void Execute<S>(int i, S streams) where S : struct, IMeshStreams
@@ -144,39 +144,39 @@ namespace ProceduralMeshes.Generators
             var vertex = new Vertex();
             vertex.tangent.w = -1f;
 
-            if (i == 0)
-            {
-                vertex.position = GetPolygonVertexPosition(i);
+            int delta = ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2 - 3;
+            int vertexOffset = i * (3 + delta);
+            int texOffset = i * (3 - (i > 0 ? 1 : 0));
+            int tiOffset = i * Resolution * Resolution;
 
-                vertex.normal = normalize(vertex.position);
-                vertex.tangent.xz = GetPolygonVertexTangent(i);
-                vertex.texCoord0 = GetTexCoord(i);
+            // Debug.Log($"{i} {texOffset}");
 
-                // Add the vertex
-                streams.SetVertex(i, vertex);
+            // Add the right vertex
 
-                vertex.position = GetPolygonVertexPosition(i);
+            vertex.position = GetPolygonVertexPosition(i);
 
-                vertex.normal = normalize(vertex.position);
-                vertex.tangent.xz = GetPolygonVertexTangent(i);
-                vertex.texCoord0 = GetTexCoord(VertexCount - 1);
+            vertex.normal = normalize(vertex.position);
+            vertex.tangent.xz = GetPolygonVertexTangent(i);
+            vertex.texCoord0 = GetTexCoord(texOffset);
+            // Debug.Log($"{vertexOffset} up start {texOffset}");
 
-                // Add the vertex
-                streams.SetVertex(VertexCount - 1, vertex);
-            }
+            // Add the vertex
+            // streams.SetVertex(vertexOffset, vertex);
+            var right = vertex;
+            // Debug.Log($"{i} up start");
 
             // Add the next vertex in the middle and it's apex
-
-            int vertexOffset = i * 2 + 1;
-
             vertex.position = GetPolygonVertexPosition((i + 1) % ActualDieSize);
 
             vertex.normal = normalize(vertex.position);
             vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % ActualDieSize);
-            vertex.texCoord0 = GetTexCoord(vertexOffset + 1);
+            vertex.texCoord0 = GetTexCoord(texOffset + 2);
+            // Debug.Log($"{vertexOffset + 2} up next {texOffset + 2}");
 
             // Add the vertex
-            streams.SetVertex(vertexOffset + 1, vertex);
+            // streams.SetVertex(vertexOffset + 2, vertex);
+            var left = vertex;
+            // Debug.Log($"{vertexOffset + 1} up next");
 
             // Add both of it's apex
 
@@ -184,33 +184,60 @@ namespace ProceduralMeshes.Generators
             // Normal is above, tangent is forward
             vertex.normal = normalize(vertex.position);
             vertex.tangent = new float4(0, 0, 1, -1);
-            vertex.texCoord0 = GetTexCoord(vertexOffset);
+            vertex.texCoord0 = GetTexCoord(texOffset + 1);
+            // Debug.Log($"{vertexOffset + 1} up apex {texOffset + 1}");
 
-            streams.SetVertex(vertexOffset, vertex);
+            // streams.SetVertex(vertexOffset + 1, vertex);
+            var top = vertex;
+            // Debug.Log($"{vertexOffset} up apex");
 
             // Add the triangles from both sides to their apex
-            streams.SetTriangle(i, new int3(vertexOffset, vertexOffset - 1, vertexOffset + 1));
+            // streams.SetTriangle(i, new int3(vertexOffset + 1, vertexOffset, vertexOffset + 2));
+            ResolutionUtils.FitTriangle((left, vertexOffset + 2), (top, vertexOffset + 1), (right, vertexOffset), streams, Resolution, tiOffset);
 
-            int inverseVertexOffset = VertexCount - 1 - vertexOffset;
+            int inverseVertexOffset = VertexCount / 2 + vertexOffset;
+            int inverseTexOffset = 2 * ActualDieSize - texOffset + 1;
+            int inverseTiOffset = (i + ActualDieSize / 2) * Resolution * Resolution;
+
+            // Add the left vertex
+
+            vertex.position = GetPolygonVertexPosition(i);
+
+            vertex.normal = normalize(vertex.position);
+            vertex.tangent.xz = GetPolygonVertexTangent(i);
+            vertex.texCoord0 = GetTexCoord(inverseTexOffset);
+            // Debug.Log($"{inverseVertexOffset} bottom start {inverseTexOffset}");
+
+            // Add the vertex
+            // streams.SetVertex(inverseVertexOffset, vertex);
+            left = vertex;
+            // Debug.Log($"{VertexCount / 2} bottom start");
 
             vertex.position = GetPolygonVertexPosition((i + 1) % ActualDieSize);
 
             vertex.normal = normalize(vertex.position);
             vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % ActualDieSize);
-            vertex.texCoord0 = GetTexCoord(inverseVertexOffset - 1);
+            vertex.texCoord0 = GetTexCoord(inverseTexOffset - 2);
+            // Debug.Log($"{inverseVertexOffset - 2} bottom next {inverseTexOffset - 2}");
 
             // Add the vertex
-            streams.SetVertex(inverseVertexOffset - 1, vertex);
+            // streams.SetVertex(inverseVertexOffset + 2, vertex);
+            right = vertex;
+            // Debug.Log($"{inverseVertexOffset + 2} bottom next");
 
             vertex.position = Vector3.down * _apexDelta;
             // Normal is below, tangent is backward
             vertex.normal = normalize(vertex.position);
             vertex.tangent = new float4(0, 0, -1, -1);
-            vertex.texCoord0 = GetTexCoord(inverseVertexOffset);
+            vertex.texCoord0 = GetTexCoord(inverseTexOffset - 1);
+            // Debug.Log($"{inverseVertexOffset - 1} bottom apex {inverseTexOffset + 1}");
 
-            streams.SetVertex(inverseVertexOffset, vertex);
+            // streams.SetVertex(inverseVertexOffset + 1, vertex);
+            top = vertex;
+            // Debug.Log($"{inverseVertexOffset} bottom apex");
 
-            streams.SetTriangle(ActualDieSize + i, new int3(inverseVertexOffset + 1, inverseVertexOffset - 1, inverseVertexOffset));
+            // streams.SetTriangle(ActualDieSize / 2 + i, new int3(inverseVertexOffset + 1, inverseVertexOffset + 2 , inverseVertexOffset));
+            ResolutionUtils.FitTriangle((left, inverseVertexOffset), (top, inverseVertexOffset + 1), (right, inverseVertexOffset + 2), streams, Resolution, inverseTiOffset);
         }
     }
 }
