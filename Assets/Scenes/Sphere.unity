@@ -173,12 +173,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 616a0aabb61c03c42b8d699ff27c98c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _diceGenerator: BipyramidDiceGenerator
+  _diceGenerator: TrapezohedronDiceGenerator
   _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
   _textMeshPro: {fileID: 1172409111}
   _gizmos: 0
-  _resolution: 5
-  _dieSize: 8
+  _resolution: 1
+  _dieSize: 10
   _meshOptimization: 0
 --- !u!23 &582158412
 MeshRenderer:

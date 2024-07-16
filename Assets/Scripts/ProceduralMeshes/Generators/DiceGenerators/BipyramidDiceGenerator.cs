@@ -166,10 +166,10 @@ namespace ProceduralMeshes.Generators
             // Debug.Log($"{i} up start");
 
             // Add the next vertex in the middle and it's apex
-            vertex.position = GetPolygonVertexPosition((i + 1) % ActualDieSize);
+            vertex.position = GetPolygonVertexPosition(i + 1);
 
             vertex.normal = normalize(vertex.position);
-            vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % ActualDieSize);
+            vertex.tangent.xz = GetPolygonVertexTangent(i + 1);
             vertex.texCoord0 = GetTexCoord(texOffset + 2);
             // Debug.Log($"{vertexOffset + 2} up next {texOffset + 2}");
 
@@ -213,10 +213,10 @@ namespace ProceduralMeshes.Generators
             left = vertex;
             // Debug.Log($"{VertexCount / 2} bottom start");
 
-            vertex.position = GetPolygonVertexPosition((i + 1) % ActualDieSize);
+            vertex.position = GetPolygonVertexPosition(i + 1);
 
             vertex.normal = normalize(vertex.position);
-            vertex.tangent.xz = GetPolygonVertexTangent((i + 1) % ActualDieSize);
+            vertex.tangent.xz = GetPolygonVertexTangent(i + 1);
             vertex.texCoord0 = GetTexCoord(inverseTexOffset - 2);
             // Debug.Log($"{inverseVertexOffset - 2} bottom next {inverseTexOffset - 2}");
 
