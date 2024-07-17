@@ -12,7 +12,5 @@ namespace ProceduralMeshes.Generators
         public int Resolution { get; set; }
 
         public void Execute<S>(int i, S streams) where S : struct, IMeshStreams;
-
-        public MeshJobScheduleDelegate DefaultJobHandle { get; }
     }
 }

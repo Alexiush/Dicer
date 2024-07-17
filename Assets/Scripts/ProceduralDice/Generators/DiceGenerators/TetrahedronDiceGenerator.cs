@@ -35,7 +35,6 @@ namespace ProceduralMeshes.Generators
             return validSize && validResolution;
         }
 
-        public MeshJobScheduleDelegate DefaultJobHandle => MeshJob<TetrahedronDiceGenerator, MultiStream>.ScheduleParallel;
         public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<TetrahedronDiceGenerator, MultiStream>.ScheduleParallel;
 
         private static float3 GetCorner(int index)
