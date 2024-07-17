@@ -12,7 +12,7 @@ public interface IDiceGenerator : IMeshGenerator
 
     public bool Validate();
 
-    public Texture2D GenerateNumbersTexture(int width, int height, TMP_Text text);
+    public Texture2D GenerateNumbersTexture(int width, int height, SideTextureRenderer renderer);
 
     public int GetSelectedSide(Transform transform, Mesh mesh);
 

@@ -40,7 +40,7 @@ public class ProceduralDice : MonoBehaviour
     private MeshRenderer _meshRenderer;
 
     [SerializeField]
-    private TextMeshPro _textMeshPro;
+    private SideTextureRenderer _sideTextureRenderer;
 
     private void Awake()
     {
@@ -84,7 +84,7 @@ public class ProceduralDice : MonoBehaviour
         OnNewGeneration?.Invoke(_mesh);
         enabled = false;
 
-        _material.SetTexture("_Mask", generator.GenerateNumbersTexture(256, 256, _textMeshPro));
+        _material.SetTexture("_Mask", generator.GenerateNumbersTexture(256, 256, _sideTextureRenderer));
         _meshRenderer.material = _material;
     }
 

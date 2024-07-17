@@ -110,12 +110,10 @@ namespace ProceduralMeshes.Generators
             };
         }
 
-        public Texture2D GenerateNumbersTexture(int width, int height, TMP_Text text)
+        public Texture2D GenerateNumbersTexture(int width, int height, SideTextureRenderer renderer)
         {
             var texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
             var temporaryTexture = RenderTexture.GetTemporary(width, height);
-
-            temporaryTexture.BeginOrthoRendering();
 
             for (int side = 0; side < 4; side++)
             {
@@ -135,25 +133,18 @@ namespace ProceduralMeshes.Generators
 
                     // Draw the number i+1 in the center
                     // Set textMeshPro text and direction
-                    text.text = (Enumerable.Range(0, 4)
+                    var index = Enumerable.Range(0, 4)
                         .OrderBy(i => distancesq(GetCorner(i), figureCorners[corner]))
-                        .First() + 1)
-                        .ToString();
+                        .First();
 
-                    text.ForceMeshUpdate(true, true);
+                    var position = center + offset;
+                    var euler = sideEuler + cornerEuler;
+                    var scale = Vector2.one * 0.5f;
 
-                    var position2d = center + offset;
-                    var position = new Vector3(position2d.x, position2d.y, 0);
-
-                    temporaryTexture.DrawTMPText(text, Matrix4x4.TRS(position, Quaternion.Euler(sideEuler + cornerEuler), Vector3.one * 0.5f));
+                    renderer.RenderSide(temporaryTexture, index, position, euler, scale);
                 }
             }
-
-            temporaryTexture.EndRendering();
             Graphics.CopyTexture(temporaryTexture, texture);
-
-            text.text = string.Empty;
-            temporaryTexture.Release();
 
             return texture;
         }

@@ -139,6 +139,8 @@ GameObject:
   - component: {fileID: 582158414}
   - component: {fileID: 582158416}
   - component: {fileID: 582158417}
+  - component: {fileID: 582158419}
+  - component: {fileID: 582158418}
   m_Layer: 0
   m_Name: Procedural Die
   m_TagString: Untagged
@@ -173,12 +175,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 616a0aabb61c03c42b8d699ff27c98c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _diceGenerator: TrapezohedronDiceGenerator
+  _diceGenerator: TetrahedronDiceGenerator
   _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
-  _textMeshPro: {fileID: 1172409111}
+  _sideTextureRenderer: {fileID: 582158418}
   _gizmos: 0
   _resolution: 1
-  _dieSize: 10
+  _dieSize: 4
   _meshOptimization: 0
 --- !u!23 &582158412
 MeshRenderer:
@@ -309,6 +311,32 @@ MonoBehaviour:
   _die: {fileID: 582158411}
   _forceModifier: 4
   _torqueModifier: 6
+--- !u!114 &582158418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 582158409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 246f750fabc762f43bf18c7c0fc476ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshSupplier: {fileID: 582158419}
+--- !u!114 &582158419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 582158409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3c77b5bc277c4b4b9b3b1295ff6c3e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _tmp: {fileID: 1172409111}
 --- !u!1 &888167752
 GameObject:
   m_ObjectHideFlags: 0

@@ -77,21 +77,17 @@ namespace ProceduralMeshes.Generators
             }
         }
 
-        public Texture2D GenerateNumbersTexture(int width, int height, TMP_Text text)
+        public Texture2D GenerateNumbersTexture(int width, int height, SideTextureRenderer renderer)
         {
             var texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
             var temporaryTexture = RenderTexture.GetTemporary(width, height);
 
-            temporaryTexture.BeginOrthoRendering();
             float offset = 1f / (ActualDieSize + 1);
-
             var size = 3f / (ActualDieSize / 2 + 1 / 2f);
-
-            var initialFontSize = text.fontSize;
 
             for (int i = 0; i < ActualDieSize; i++)
             {
-                float2 center;
+                float2 position;
                 Vector3 euler;
                 float totalOffset = offset * (2 * ((i % (ActualDieSize / 2)) + 1f / 2));
 
@@ -99,31 +95,23 @@ namespace ProceduralMeshes.Generators
                 {
                     // Upper pass
 
-                    center = new float2(2f / 3f, 1 - totalOffset);
+                    position = new float2(2f / 3f, 1 - totalOffset);
                     euler = new Vector3(180, 0, 90);
                 }
                 else
                 {
                     // Lower pass
 
-                    center = new float2(1f / 3f, 0 + totalOffset);
+                    position = new float2(1f / 3f, 0 + totalOffset);
                     euler = new Vector3(180, 180, -90);
                 }
 
-                text.text = ((i % DieSize) + 1).ToString();
-                text.fontSize = initialFontSize * size / text.text.Length;
-                text.ForceMeshUpdate(true, true);
+                Vector2 scale = new Vector2(1, 2) * size;
 
-                var position = new Vector3(center.x, center.y, 0);
-
-                temporaryTexture.DrawTMPText(text, Matrix4x4.TRS(position, Quaternion.Euler(euler), new Vector3(1, 2, 1)));
+                renderer.RenderSide(temporaryTexture, i, position, euler, scale);
             }
-
-            temporaryTexture.EndRendering();
             Graphics.CopyTexture(temporaryTexture, texture);
 
-            text.text = string.Empty;
-            text.fontSize = initialFontSize;
             temporaryTexture.Release();
 
             return texture;
