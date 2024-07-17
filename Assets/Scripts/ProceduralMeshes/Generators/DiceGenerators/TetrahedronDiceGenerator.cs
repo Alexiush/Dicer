@@ -64,16 +64,6 @@ namespace ProceduralMeshes.Generators
             public float2 Right;
         }
 
-        private struct Triangle
-        {
-            public int Zeroth;
-            public int First;
-            public int Second;
-
-            public int3 Front => new int3(Zeroth, Second, First);
-            public int3 Back => new int3(Zeroth, First, Second);
-        }
-
         private static Side GetSide(int side)
         {
             return side switch
@@ -85,10 +75,6 @@ namespace ProceduralMeshes.Generators
                 _ => throw new System.Exception($"Tetrahedron has only four sides, indexed from 0 to 3. Received argument: {side}")
             };
         }
-
-        // Texture can be applied simply
-        // One of the unwraps (not distorted one) is another triangle
-        // Another one (distorted, but even simpler) is a square, where sides can be defined again via texture coordinates
 
         private static TexSide GetTexSide(int side)
         {
@@ -182,152 +168,43 @@ namespace ProceduralMeshes.Generators
             return topmostVertex + 1;
         }
 
-        // Sides (by corners) are:
-        // 1 - 1, 2, 3
-        // 2 - 1, 2, 4
-        // 3 - 1, 3, 4
-        // 4 - 2, 3, 4
-
-        private static int TriangleLevel(int level) => level * level;
-
-        private int GetTriangleLevel(int index)
-        {
-            int level = 0;
-
-            for (int i = 1; i <= ActualDieSize; ++i)
-            {
-                if (TriangleLevel(i) > index)
-                {
-                    break;
-                }
-
-                level++;
-            }
-
-            return level;
-        }
-
-        private static int VertexLevel(int level) => level * (level + 1) / 2;
-
-        private int GetVertexLevel(int index)
-        {
-            int level = 0;
-
-            for (int i = 1; i <= ActualDieSize; ++i)
-            {
-                if (VertexLevel(i) > index)
-                {
-                    break;
-                }
-
-                level++;
-            }
-
-            return level;
-        }
-
-        // Get offset by the index
-        // The tetrahedron is inside a unit sphere
-        // 3 of it sides start from the top (0, 1, 0)
-        // They go towards 3 vertices that lie down:
-        // (0, 1 - sqrt(8/3), -1), (-sqrt(3/2), 1 - sqrt(8/3), 1/2), (sqrt(3/2), 1 - sqrt(8/3), 1/2)
-        // The length of the side is sqrt(8/3)
-
-        // Get the top offset by getting the level on which current triangle is
-        // Get the left offset based on the triangle's place on that level
-        private float3 GetVertex(int sideIndex, int index)
-        {
-            // Get this side's corners
-            var side = GetSide(sideIndex);
-
-            var level = GetVertexLevel(index);
-
-            if (level == 0)
-            {
-                return side.Top;
-            }
-
-            // Get the left and right sides of the level baseline
-            var leftSide = side.Top + (side.Left - side.Top) * level / ActualDieSize;
-            var rightSide = side.Top + (side.Right - side.Top) * level / ActualDieSize;
-
-            // Get the vertex based on it's position on the line
-            var triangleSide = (rightSide - leftSide) / level;
-            var leftOffset = index - VertexLevel(level);
-
-            var position = leftSide + triangleSide * leftOffset;
-
-            return position;
-        }
-
-        private float2 GetVertexTex(int sideIndex, int index)
-        {
-            // Get this side's corners
-            var side = GetTexSide(sideIndex);
-
-            var level = GetVertexLevel(index);
-
-            if (level == 0)
-            {
-                return side.Top;
-            }
-
-            // Get the left and right sides of the level baseline
-            var leftSide = side.Top + (side.Left - side.Top) * level / ActualDieSize;
-            var rightSide = side.Top + (side.Right - side.Top) * level / ActualDieSize;
-
-            // Get the vertex based on it's position on the line
-            var triangleSide = (rightSide - leftSide) / level;
-            var leftOffset = index - VertexLevel(level);
-
-            var position = leftSide + triangleSide * leftOffset;
-
-            return position;
-        }
-
-        private static float2 GetTangentXZ(float3 p) => normalize(float2(-p.z, p.x));
+        private static float2 GetTangentXZ(float3 top, float3 p) => ((float3)Vector3.Cross(top, p).normalized).xz;
 
         public void Execute<S>(int index, S streams) where S : struct, IMeshStreams
         {
-            // Get the current set of vertices
-
-            var viOffset = index * (Resolution + 1) * (Resolution + 2) / 2;
-            var tiOffset = index * Resolution * Resolution;
+            var vertexOffset = index * (Resolution + 1) * (Resolution + 2) / 2;
+            var triangleOffset = index * Resolution * Resolution;
 
             Side corners = GetSide(index);
             TexSide texCorners = GetTexSide(index);
 
-            var left = new Vertex
-            {
-                position = corners.Left,
-                texCoord0 = texCorners.Left,
-                normal = corners.Left
-            };
-            float3 rightDirection = Vector3.Cross((corners.Top - 0), (left.normal - 0)).normalized;
-            left.tangent.xz = rightDirection.xz;
-            left.tangent.w = -1f;
+            var vertex = new Vertex();
+            vertex.tangent.w = -1f;
 
-            var top = new Vertex
-            {
-                position = corners.Top,
-                texCoord0 = texCorners.Top,
-                normal = corners.Top
-            };
-            rightDirection = Vector3.Cross((corners.Top - 0), (top.normal - 0)).normalized;
-            left.tangent.xz = rightDirection.xz;
-            left.tangent.w = -1f;
+            vertex.position = vertex.normal = corners.Left;
+            vertex.texCoord0 = texCorners.Left;
+            vertex.tangent.xz = GetTangentXZ(corners.Top, vertex.position);
 
-            var right = new Vertex
-            {
-                position = corners.Right,
-                texCoord0 = texCorners.Right,
-                normal = corners.Right
-            };
-            rightDirection = Vector3.Cross((corners.Top - 0), (right.normal - 0)).normalized;
-            left.tangent.xz = rightDirection.xz;
-            left.tangent.w = -1f;
+            var left = vertex;
 
-            ResolutionUtils.FitTriangle((left, viOffset), (top, viOffset + 1), (right, viOffset + 2), streams, Resolution, tiOffset);
+            vertex.position = vertex.normal = corners.Top;
+            vertex.texCoord0 = texCorners.Top;
+            vertex.tangent.xz = GetTangentXZ(corners.Top, vertex.position);
+
+            var top = vertex;
+
+            vertex.position = vertex.normal = corners.Right;
+            vertex.texCoord0 = texCorners.Right;
+            vertex.tangent.xz = GetTangentXZ(corners.Top, vertex.position);
+
+            var right = vertex;
+
+            ResolutionUtils.FitTriangle(
+                (left, vertexOffset), 
+                (top, vertexOffset + 1), 
+                (right, vertexOffset + 2), 
+                streams, Resolution, triangleOffset
+            );
         }
     }
 }

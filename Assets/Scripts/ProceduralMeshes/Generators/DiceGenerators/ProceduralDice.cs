@@ -75,6 +75,11 @@ public class ProceduralDice : MonoBehaviour
             return;
         }
 
+        _vertices = null;
+        _normals = null;
+        _tangents = null;
+        _triangles = null;
+
         GenerateMesh();
         OnNewGeneration?.Invoke(_mesh);
         enabled = false;
@@ -110,7 +115,10 @@ public class ProceduralDice : MonoBehaviour
         bool drawTangents = (_gizmos & GizmoMode.Tangents) != 0;
         bool drawTriangles = (_gizmos & GizmoMode.Triangles) != 0;
 
-        _vertices = _mesh.vertices;
+        if (_vertices == null)
+        {
+            _vertices = _mesh.vertices;
+        }
 
         Transform t = transform;
         for (int i = 0; i < _vertices.Length; i++)
@@ -125,7 +133,10 @@ public class ProceduralDice : MonoBehaviour
 
             if (drawNormals && _mesh.HasVertexAttribute(VertexAttribute.Normal))
             {
-                _normals = _mesh.normals;
+                if (_normals == null)
+                {
+                    _normals = _mesh.normals;
+                }
 
                 Gizmos.color = Color.green;
                 Gizmos.DrawRay(position, t.TransformDirection(_normals[i]) * 0.2f);
@@ -133,7 +144,10 @@ public class ProceduralDice : MonoBehaviour
 
             if (drawTangents && _mesh.HasVertexAttribute(VertexAttribute.Tangent))
             {
-                _tangents = _mesh.tangents;
+                if (_tangents == null)
+                {
+                    _tangents = _mesh.tangents;
+                }
 
                 Gizmos.color = Color.red;
                 Gizmos.DrawRay(position, t.TransformDirection(_tangents[i]) * 0.2f);
@@ -141,7 +155,10 @@ public class ProceduralDice : MonoBehaviour
 
             if (drawTriangles)
             {
-                _triangles = _mesh.triangles;
+                if (_triangles == null)
+                {
+                    _triangles = _mesh.triangles;
+                }
 
                 float colorStep = 1f / (_triangles.Length - 3);
                 for (int triangle = 0; triangle < _triangles.Length; triangle += 3)
