@@ -784,7 +784,7 @@ MonoBehaviour:
   _sideTextureRenderer: {fileID: 1539973074}
   _gizmos: 0
   _resolution: 1
-  _dieSize: 3
+  _dieSize: 5
   _meshOptimization: 0
 --- !u!23 &1539973081
 MeshRenderer:
@@ -863,10 +863,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 166d27e547493c7428d2520b7b769d25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _seed: 0
   _die: {fileID: 1539973080}
   _topDirection: {x: 0, y: 1, z: 0}
   _forwardDirection: {x: 0, y: 0, z: -1}
-  _defaultSide: 1
+  _defaultSide: 2
 --- !u!1 &1918964994
 GameObject:
   m_ObjectHideFlags: 0
