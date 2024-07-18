@@ -10,6 +10,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 using static Unity.Mathematics.math;
+using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UI.GridLayoutGroup;
 
 namespace ProceduralMeshes.Generators
@@ -149,10 +150,26 @@ namespace ProceduralMeshes.Generators
             return texture;
         }
 
-        public int GetSelectedSide(Transform transform, Mesh mesh)
+        public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection)
         {
+            var sideVertices = GetSide(side);
+
+            Vector3 center = (Vector3)(sideVertices.Top + sideVertices.Left + sideVertices.Right) / 3;
+            var rotation = Quaternion.FromToRotation(center.normalized, forwardDirection);
+            transform.rotation *= rotation;
+
+            Vector3 top = GetCorner(side);
+            Vector3 topDefaultPosition = rotation * (top - center);
+            float angle = Vector3.SignedAngle(topDefaultPosition.normalized, topDirection, forwardDirection);
+            transform.RotateAround(transform.TransformPoint(Vector3.zero), forwardDirection, angle);
+        }
+
+        public int GetRolledSide(Transform transform, Mesh mesh, Vector3 normal)
+        {
+            Func<Vector3, float> Distance = (position) => (-normal - Vector3.Scale(position, normal)).sqrMagnitude;
+
             var topmostVertex = Enumerable.Range(0, 4)
-                .OrderByDescending(i => (transform.rotation * GetCorner(i)).y)
+                .OrderByDescending(i => Distance(transform.rotation * GetCorner(i)))
                 .First();
 
             return topmostVertex + 1;

@@ -60,8 +60,12 @@ public class ProceduralDice : MonoBehaviour
     public delegate void OnNewGenerationEvent(Mesh mesh);
     public event OnNewGenerationEvent OnNewGeneration;
 
+    public bool IsGenerated { get; private set; }
+
     void Update()
     {
+        IsGenerated = false;
+
         var generator = _diceGenerators[_diceGenerator];
 
         generator.Resolution = _resolution;
@@ -86,9 +90,17 @@ public class ProceduralDice : MonoBehaviour
 
         _material.SetTexture("_Mask", generator.GenerateNumbersTexture(256, 256, _sideTextureRenderer));
         _meshRenderer.material = _material;
+
+        IsGenerated = true;
     }
 
-    public int GetSelectedSide() => _diceGenerators[_diceGenerator].GetSelectedSide(transform, _mesh);
+    public void SideRotation(int side, Vector3 topDirection, Vector3 forwardDirection) => _diceGenerators[_diceGenerator]
+        .SideRotation(
+            transform, _mesh, side, 
+            topDirection.normalized,
+            forwardDirection.normalized
+        );
+    public int GetRolledSide(Vector3 normal) => _diceGenerators[_diceGenerator].GetRolledSide(transform, _mesh, normal.normalized);
 
     [System.Flags]
     public enum GizmoMode

@@ -100,17 +100,50 @@ namespace ProceduralMeshes.Generators
             return texture;
         }
 
-        public int GetSelectedSide(Transform transform, Mesh mesh)
+        private static Vector3 GeoCenter(Transform transform, Mesh mesh, IEnumerable<int> indices) => indices
+            .Select(index => mesh.vertices[index])
+            .Aggregate((acc, e) => acc + e) / indices.Count();
+
+        public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 leftDirection, Vector3 rightDirection)
         {
-            Func<IEnumerable<int>, Vector3> TriangleCenter = (indices) => indices
-                .Select(index => transform.rotation * mesh.vertices[index])
-                .Aggregate((acc, e) => acc + e) / 3;
+            int delta = ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2 - 3;
+            int vertexOffset = side * (3 + delta);
+
+            var indices = Enumerable.Range(vertexOffset, 3);
+
+            Vector3 defaultPosition = GeoCenter(transform, mesh, indices);
+            var rotation = Quaternion.FromToRotation(defaultPosition.normalized, topDirection);
+
+            transform.rotation *= rotation;
+        }
+
+        public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection)
+        {
+            int delta = ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2 - 3;
+            int vertexOffset = side * (3 + delta);
+            var indices = Enumerable.Range(vertexOffset, 3);
+
+            Vector3 center = GeoCenter(transform, mesh, indices);
+            var rotation = Quaternion.FromToRotation(center.normalized, forwardDirection);
+            transform.rotation *= rotation;
+
+            Vector3 top = mesh.vertices[vertexOffset + 1];
+            Vector3 topDefaultPosition = rotation * (top - center);
+            float angle = Vector3.SignedAngle(topDefaultPosition.normalized, topDirection, forwardDirection);
+            transform.RotateAround(transform.TransformPoint(Vector3.zero), forwardDirection, angle + (side >= ActualDieSize / 2 ? 180 : 0));
+        }
+
+        public int GetRolledSide(Transform transform, Mesh mesh, Vector3 normal)
+        {
+            Func<IEnumerable<int>, Vector3> TriangleCenter = (indices) => transform.rotation * GeoCenter(transform, mesh, indices);
+
+            Func<Vector3, float> Distance = (position) => (-normal - Vector3.Scale(position, normal)).sqrMagnitude;
 
             var topmostTriangle = mesh.triangles
                 .Select((x, i) => new { Index = i, Value = x })
                 .GroupBy(x => x.Index / 3)
                 .Select(kv => (kv.Key, kv.ToList()))
-                .OrderByDescending(triangle => TriangleCenter(triangle.Item2.Select(v => v.Value)).y)
+                .OrderByDescending(triangle => Distance(TriangleCenter(triangle.Item2.Select(v => v.Value))))
                 .First().Key;
 
             return (topmostTriangle) / (Resolution * Resolution) + 1;

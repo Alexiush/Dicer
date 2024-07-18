@@ -142,12 +142,12 @@ GameObject:
   - component: {fileID: 582158419}
   - component: {fileID: 582158418}
   m_Layer: 0
-  m_Name: Procedural Die
+  m_Name: ThrowingDie
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &582158410
 Transform:
   m_ObjectHideFlags: 0
@@ -175,12 +175,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 616a0aabb61c03c42b8d699ff27c98c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _diceGenerator: TetrahedronDiceGenerator
+  _diceGenerator: TrapezohedronDiceGenerator
   _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
   _sideTextureRenderer: {fileID: 582158418}
   _gizmos: 0
   _resolution: 1
-  _dieSize: 4
+  _dieSize: 6
   _meshOptimization: 0
 --- !u!23 &582158412
 MeshRenderer:
@@ -311,6 +311,7 @@ MonoBehaviour:
   _die: {fileID: 582158411}
   _forceModifier: 4
   _torqueModifier: 6
+  _normal: {x: 0, y: 1, z: 0}
 --- !u!114 &582158418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -367,7 +368,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.25
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -718,6 +719,154 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1539973073
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1539973083}
+  - component: {fileID: 1539973082}
+  - component: {fileID: 1539973081}
+  - component: {fileID: 1539973080}
+  - component: {fileID: 1539973075}
+  - component: {fileID: 1539973074}
+  - component: {fileID: 1539973084}
+  m_Layer: 0
+  m_Name: RotatingDie
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1539973074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 246f750fabc762f43bf18c7c0fc476ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshSupplier: {fileID: 1539973075}
+--- !u!114 &1539973075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3c77b5bc277c4b4b9b3b1295ff6c3e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _tmp: {fileID: 1172409111}
+--- !u!114 &1539973080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 616a0aabb61c03c42b8d699ff27c98c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _diceGenerator: TrapezohedronDiceGenerator
+  _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
+  _sideTextureRenderer: {fileID: 1539973074}
+  _gizmos: 0
+  _resolution: 1
+  _dieSize: 3
+  _meshOptimization: 0
+--- !u!23 &1539973081
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1539973082
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  m_Mesh: {fileID: 0}
+--- !u!4 &1539973083
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 3.2, z: 8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1539973084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539973073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 166d27e547493c7428d2520b7b769d25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _die: {fileID: 1539973080}
+  _topDirection: {x: 0, y: 1, z: 0}
+  _forwardDirection: {x: 0, y: 0, z: -1}
+  _defaultSide: 1
 --- !u!1 &1918964994
 GameObject:
   m_ObjectHideFlags: 0
@@ -862,5 +1011,6 @@ SceneRoots:
   - {fileID: 1918964997}
   - {fileID: 888167754}
   - {fileID: 582158410}
+  - {fileID: 1539973083}
   - {fileID: 1172409113}
   - {fileID: 1214586096}

@@ -11,10 +11,9 @@ public interface IDiceGenerator : IMeshGenerator
     public int ActualDieSize { get; }
 
     public bool Validate();
-
     public Texture2D GenerateNumbersTexture(int width, int height, SideTextureRenderer renderer);
-
-    public int GetSelectedSide(Transform transform, Mesh mesh);
-
+    public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection);
+    public int GetRolledSide(Transform transform, Mesh mesh, Vector3 normal);
+    
     public DieMeshJobScheduleDelegate DefaultDieJobHandle { get; }
 }

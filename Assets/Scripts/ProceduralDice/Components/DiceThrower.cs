@@ -13,14 +13,13 @@ public class DiceThrower : MonoBehaviour
     private Rigidbody _diePhysics;
     [SerializeField]
     private ProceduralDice _die;
-    private Mesh _dieMesh;
 
     [SerializeField]
     private float _forceModifier;
     [SerializeField]
     private float _torqueModifier;
 
-    private void OnEnable()
+    private void Awake()
     {
         UnityEngine.Random.InitState(_seed);
     }
@@ -45,6 +44,9 @@ public class DiceThrower : MonoBehaviour
     private bool _dieStopped;
     private Vector3 _lastKnownPosition;
 
+    [SerializeField]
+    private Vector3 _normal = Vector3.up;
+
     private void ProcessRollResult()
     {
         _watching = false;
@@ -52,7 +54,7 @@ public class DiceThrower : MonoBehaviour
 
         // Procedural die must provide functionality for detecting it's current topmost side
 
-        int selectedSide = _die.GetSelectedSide();
+        int selectedSide = _die.GetRolledSide(_normal);
         Debug.Log($"Die stopped, topmost side: {selectedSide}");
 
         // Procedural die must provide functionality for getting the data associated with it's triangles

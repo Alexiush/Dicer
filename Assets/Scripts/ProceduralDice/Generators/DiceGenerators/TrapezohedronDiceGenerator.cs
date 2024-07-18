@@ -108,7 +108,7 @@ namespace ProceduralMeshes.Generators
 
                 Vector2 scale = new Vector2(1, 2) * size;
 
-                renderer.RenderSide(temporaryTexture, i, position, euler, scale);
+                renderer.RenderSide(temporaryTexture, i % DieSize, position, euler, scale);
             }
             Graphics.CopyTexture(temporaryTexture, texture);
 
@@ -117,17 +117,36 @@ namespace ProceduralMeshes.Generators
             return texture;
         }
 
-        public int GetSelectedSide(Transform transform, Mesh mesh)
+        private static Vector3 GeoCenter(Transform transform, Mesh mesh, IEnumerable<int> indices) => indices
+            .Select(index => mesh.vertices[index])
+            .Aggregate((acc, e) => acc + e) / indices.Count();
+
+        public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection)
         {
-            Func<IEnumerable<int>, Vector3> SideCenter = (indices) => indices
-                .Select(index => transform.rotation * mesh.vertices[index])
-                .Aggregate((acc, e) => acc + e) / 6;
+            int mainVertexOffset = side * ((Resolution + 1) * (Resolution + 1) + (Resolution + 1));
+            var indices = Enumerable.Range(mainVertexOffset, 3);
+
+            Vector3 center = GeoCenter(transform, mesh, indices);
+            var rotation = Quaternion.FromToRotation(center.normalized, forwardDirection);
+            transform.rotation *= rotation;
+
+            Vector3 top = mesh.vertices[mainVertexOffset + 1];
+            Vector3 topDefaultPosition = rotation * (top - center);
+            float angle = Vector3.SignedAngle(topDefaultPosition.normalized, topDirection, forwardDirection);
+            transform.RotateAround(transform.TransformPoint(Vector3.zero), forwardDirection, angle + (side >= ActualDieSize / 2 ? 180 : 0));
+        }
+
+        public int GetRolledSide(Transform transform, Mesh mesh, Vector3 normal)
+        {
+            Func<IEnumerable<int>, Vector3> SideCenter = (indices) => transform.rotation * GeoCenter(transform, mesh, indices);
+
+            Func<Vector3, float> Distance = (position) => (-normal - Vector3.Scale(position, normal)).sqrMagnitude;
 
             var topmostSide = mesh.triangles
                 .Select((x, i) => new { Index = i, Value = x })
                 .GroupBy(x => x.Index / 6)
                 .Select(kv => (kv.Key, kv.ToList()))
-                .OrderByDescending(triangle => SideCenter(triangle.Item2.Select(v => v.Value)).y)
+                .OrderByDescending(triangle => Distance(SideCenter(triangle.Item2.Select(v => v.Value))))
                 .First().Key;
 
             return ((topmostSide) / (Resolution * Resolution)) % DieSize + 1;
