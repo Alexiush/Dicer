@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -55,15 +56,19 @@ public class ProceduralDice : MonoBehaviour
         _meshFilter.mesh = _mesh;
     }
 
-    void OnValidate() => enabled = true;
-
     public delegate void OnNewGenerationEvent(Mesh mesh);
     public event OnNewGenerationEvent OnNewGeneration;
 
-    public bool IsGenerated { get; private set; }
+    public bool IsGenerated { get; private set; } = true;
 
-    void Update()
+    public void Generate()
     {
+        if (!IsGenerated)
+        {
+            Debug.Log("Previous generation process is still going");
+            return;
+        }
+
         IsGenerated = false;
 
         var generator = _diceGenerators[_diceGenerator];
@@ -74,7 +79,7 @@ public class ProceduralDice : MonoBehaviour
         if (!generator.Validate())
         {
             Debug.LogError("Invalid die data");
-            enabled = false;
+            IsGenerated = true;
 
             return;
         }
@@ -86,12 +91,26 @@ public class ProceduralDice : MonoBehaviour
 
         GenerateMesh();
         OnNewGeneration?.Invoke(_mesh);
-        enabled = false;
 
         _material.SetTexture("_Mask", generator.GenerateNumbersTexture(256, 256, _sideTextureRenderer));
         _meshRenderer.material = _material;
 
         IsGenerated = true;
+    }
+
+    private void Start()
+    {
+        Generate();
+    }
+
+    private void OnValidate()
+    {
+        if (Application.isEditor)
+        {
+            return;
+        }
+
+        Generate();
     }
 
     public void SideRotation(int side, Vector3 topDirection, Vector3 forwardDirection) => _diceGenerators[_diceGenerator]
@@ -234,3 +253,22 @@ public class ProceduralDice : MonoBehaviour
         }
     }
 }
+
+[CustomEditor(typeof(ProceduralDice))]
+public class ProceduralDiceEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        var proceduralDie = target as ProceduralDice; 
+
+        EditorGUILayout.Space(20f);
+        if (GUILayout.Button("Regenerate") && Application.isPlaying)
+        {
+            proceduralDie.Generate();
+        }
+    }
+}
+
+

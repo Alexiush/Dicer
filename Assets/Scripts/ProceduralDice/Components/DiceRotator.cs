@@ -40,8 +40,6 @@ public class DiceRotator : MonoBehaviour
     private float _timeLeft;
     private int _processedTargetSide;
 
-    public int TargetSide { get; set; } = 1;
-
     public void RotateDieAnimated(int side, float animationDuration)
     {
         if (_rotating)
@@ -79,16 +77,22 @@ public class DiceRotator : MonoBehaviour
 [CustomEditor(typeof(DiceRotator))]
 public class DiceRotatorEditor : Editor
 {
+    private int _targetSide = 1;
+    private float _duration = 1f;
+
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
 
         var diceRotator = target as DiceRotator;
 
-        diceRotator.TargetSide = EditorGUILayout.IntField(diceRotator.TargetSide);
-        if (GUILayout.Button("Rotate"))
+        EditorGUILayout.Space(20f);
+
+        _targetSide = EditorGUILayout.IntField("Target side", _targetSide);
+        _duration = EditorGUILayout.FloatField("Duration", _duration);
+        if (GUILayout.Button("Rotate") && Application.isPlaying)
         {
-            diceRotator.RotateDieAnimated(diceRotator.TargetSide, 5);
+            diceRotator.RotateDieAnimated(_targetSide, _duration);
         }
     }
 }

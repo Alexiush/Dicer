@@ -2,6 +2,7 @@ using ProceduralMeshes.Generators;
 using ProceduralMeshes.Streams;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -9,7 +10,7 @@ using UnityEngine;
 namespace ProceduralMeshes
 {
 
-    // [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, CompileSynchronously = true)]
+    [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, CompileSynchronously = true)]
     public struct DieMeshJob<G, S> : IJobFor
         where G : struct, IDiceGenerator
         where S : struct, IMeshStreams

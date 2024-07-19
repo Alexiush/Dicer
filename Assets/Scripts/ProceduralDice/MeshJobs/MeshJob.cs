@@ -8,7 +8,7 @@ using UnityEngine;
 namespace ProceduralMeshes
 {
 
-    // [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, CompileSynchronously = true)]
+    [BurstCompile(FloatPrecision.Standard, FloatMode.Fast, CompileSynchronously = true)]
     public struct MeshJob<G, S> : IJobFor
         where G : struct, IMeshGenerator
         where S : struct, IMeshStreams

@@ -147,7 +147,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &582158410
 Transform:
   m_ObjectHideFlags: 0
@@ -179,8 +179,8 @@ MonoBehaviour:
   _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
   _sideTextureRenderer: {fileID: 582158418}
   _gizmos: 0
-  _resolution: 1
-  _dieSize: 6
+  _resolution: 5
+  _dieSize: 99
   _meshOptimization: 0
 --- !u!23 &582158412
 MeshRenderer:
@@ -311,6 +311,7 @@ MonoBehaviour:
   _die: {fileID: 582158411}
   _forceModifier: 4
   _torqueModifier: 6
+  _defaultPosition: {x: 0, y: 5, z: 14}
   _normal: {x: 0, y: 1, z: 0}
 --- !u!114 &582158418
 MonoBehaviour:
@@ -740,7 +741,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1539973074
 MonoBehaviour:
   m_ObjectHideFlags: 0

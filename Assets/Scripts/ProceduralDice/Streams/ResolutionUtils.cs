@@ -13,8 +13,8 @@ public static class ResolutionUtils
     private static int VertexLevel(int level) => level * (level + 1) / 2;
 
     // Code to fit the triangle to an expected resolution is generic
-    public static void FitTriangle((Vertex v, int i) left, (Vertex v, int i) top, (Vertex v, int i) right, 
-        IMeshStreams stream, int resolution, int triangleOffset)
+    public static void FitTriangle<S>((Vertex v, int i) left, (Vertex v, int i) top, (Vertex v, int i) right, 
+        S stream, int resolution, int triangleOffset) where S : struct, IMeshStreams
     {
         // Vertex index just increments after the highest index among three vertices
         // Triangle index just increments after specified number

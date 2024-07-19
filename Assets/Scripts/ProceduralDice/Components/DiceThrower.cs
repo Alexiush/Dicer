@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class DiceThrower : MonoBehaviour
@@ -19,29 +20,37 @@ public class DiceThrower : MonoBehaviour
     [SerializeField]
     private float _torqueModifier;
 
-    private void Awake()
+    public void ResetState()
     {
         UnityEngine.Random.InitState(_seed);
     }
 
-    private void Start()
+    private void Awake()
     {
-        // Dice should be thrown with some random force
-        // However, just applying the force is not enough, it must rotate, etc
+        ResetState();
+    }
+
+    [SerializeField]
+    private Vector3 _defaultPosition;
+
+    public void Roll()
+    {
+        if (_watching)
+        {
+            Debug.Log("Die is already rolling");
+            return; 
+        }
+
+        _die.transform.position = _defaultPosition;
 
         _diePhysics.AddRelativeTorque(UnityEngine.Random.insideUnitSphere * _torqueModifier, ForceMode.Impulse);
         _diePhysics.AddRelativeForce(UnityEngine.Random.insideUnitSphere * _forceModifier, ForceMode.Impulse);
 
-        // Start "watching" the die movements till it stops moving
-        // When the movement stops - find the facing upwards triangle
-
-        // As an update is called with the die position not changed yet it hits a false stop unless the flag is added or position is spoofed 
         _lastKnownPosition = _diePhysics.position + UnityEngine.Random.insideUnitSphere;
         _watching = true;
     }
 
     private bool _watching;
-    private bool _dieStopped;
     private Vector3 _lastKnownPosition;
 
     [SerializeField]
@@ -50,7 +59,6 @@ public class DiceThrower : MonoBehaviour
     private void ProcessRollResult()
     {
         _watching = false;
-        _dieStopped = true;
 
         // Procedural die must provide functionality for detecting it's current topmost side
 
@@ -73,6 +81,29 @@ public class DiceThrower : MonoBehaviour
             }
 
             _lastKnownPosition = currentPosition;
+        }
+    }
+}
+
+[CustomEditor(typeof(DiceThrower))]
+public class DiceThrowerEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+
+        var diceThrower = target as DiceThrower;
+
+        EditorGUILayout.Space(20f);
+
+        if (GUILayout.Button("Throw") && Application.isPlaying)
+        {
+            diceThrower.Roll();
+        }
+
+        if (GUILayout.Button("Reset state") && Application.isPlaying)
+        {
+            diceThrower.ResetState();
         }
     }
 }
