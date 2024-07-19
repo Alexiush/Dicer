@@ -13,7 +13,7 @@ public class DiceThrower : MonoBehaviour
     [SerializeField]
     private Rigidbody _diePhysics;
     [SerializeField]
-    private ProceduralDice _die;
+    private ProceduralDie _die;
 
     [SerializeField]
     private float _forceModifier;

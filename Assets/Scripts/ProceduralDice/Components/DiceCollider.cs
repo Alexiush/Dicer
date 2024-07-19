@@ -6,7 +6,7 @@ using UnityEngine;
 public class DiceCollider : MonoBehaviour
 {
     [SerializeField]
-    private ProceduralDice _diceGenerator;
+    private ProceduralDie _diceGenerator;
     private MeshCollider _collider; 
 
     private void OnEnable()

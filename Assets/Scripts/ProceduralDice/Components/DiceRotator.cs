@@ -10,7 +10,7 @@ public class DiceRotator : MonoBehaviour
     private int _seed;
 
     [SerializeField]
-    private ProceduralDice _die;
+    private ProceduralDie _die;
     
     [SerializeField]
     private Vector3 _topDirection;

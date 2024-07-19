@@ -8,8 +8,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class ProceduralDice : MonoBehaviour
+public class ProceduralDie : MonoBehaviour
 {
     private Dictionary<string, DieMeshJobScheduleDelegate> _dieBuildingJobs = AppDomain.CurrentDomain
         .GetAssemblies()
@@ -63,6 +64,12 @@ public class ProceduralDice : MonoBehaviour
 
     public void Generate()
     {
+        if (_mesh == null)
+        {
+            Debug.Log("Die is not initialized yet");
+            return;
+        }
+
         if (!IsGenerated)
         {
             Debug.Log("Previous generation process is still going");
@@ -74,7 +81,7 @@ public class ProceduralDice : MonoBehaviour
         var generator = _diceGenerators[_diceGenerator];
 
         generator.Resolution = _resolution;
-        generator.DieSize = _dieSize;
+        generator.DieSize = DieSize;
 
         if (!generator.Validate())
         {
@@ -105,11 +112,6 @@ public class ProceduralDice : MonoBehaviour
 
     private void OnValidate()
     {
-        if (Application.isEditor)
-        {
-            return;
-        }
-
         Generate();
     }
 
@@ -211,8 +213,8 @@ public class ProceduralDice : MonoBehaviour
 
     [SerializeField, Range(1, 5)]
     private int _resolution = 1;
-    [SerializeField, Range(1, 100)]
-    private int _dieSize = 1;
+    [field: SerializeField, Range(1, 100)]
+    public int DieSize { get; private set; } = 1;
 
     [System.Flags]
     public enum MeshOptimizationMode
@@ -235,7 +237,7 @@ public class ProceduralDice : MonoBehaviour
             _diceGenerator = DiceGeneratorJobs[0];
         }
 
-        _dieBuildingJobs[_diceGenerator](_mesh, meshData, _resolution, _dieSize, default).Complete();
+        _dieBuildingJobs[_diceGenerator](_mesh, meshData, _resolution, DieSize, default).Complete();
 
         Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
 
@@ -254,17 +256,17 @@ public class ProceduralDice : MonoBehaviour
     }
 }
 
-[CustomEditor(typeof(ProceduralDice))]
+[CustomEditor(typeof(ProceduralDie))]
 public class ProceduralDiceEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
 
-        var proceduralDie = target as ProceduralDice; 
+        var proceduralDie = target as ProceduralDie; 
 
         EditorGUILayout.Space(20f);
-        if (GUILayout.Button("Regenerate") && Application.isPlaying)
+        if (GUILayout.Button("Regenerate"))
         {
             proceduralDie.Generate();
         }

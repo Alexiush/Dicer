@@ -104,19 +104,6 @@ namespace ProceduralMeshes.Generators
             .Select(index => mesh.vertices[index])
             .Aggregate((acc, e) => acc + e) / indices.Count();
 
-        public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 leftDirection, Vector3 rightDirection)
-        {
-            int delta = ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2 - 3;
-            int vertexOffset = side * (3 + delta);
-
-            var indices = Enumerable.Range(vertexOffset, 3);
-
-            Vector3 defaultPosition = GeoCenter(transform, mesh, indices);
-            var rotation = Quaternion.FromToRotation(defaultPosition.normalized, topDirection);
-
-            transform.rotation *= rotation;
-        }
-
         public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection)
         {
             int delta = ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2 - 3;

@@ -179,8 +179,8 @@ MonoBehaviour:
   _material: {fileID: 2100000, guid: 076c25e20b5338648b634ddca919423f, type: 2}
   _sideTextureRenderer: {fileID: 582158418}
   _gizmos: 0
-  _resolution: 5
-  _dieSize: 99
+  _resolution: 1
+  <DieSize>k__BackingField: 6
   _meshOptimization: 0
 --- !u!23 &582158412
 MeshRenderer:
@@ -785,7 +785,7 @@ MonoBehaviour:
   _sideTextureRenderer: {fileID: 1539973074}
   _gizmos: 0
   _resolution: 1
-  _dieSize: 5
+  <DieSize>k__BackingField: 1
   _meshOptimization: 0
 --- !u!23 &1539973081
 MeshRenderer:
