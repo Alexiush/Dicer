@@ -242,9 +242,9 @@ namespace ProceduralMeshes.Generators
             );
             
             ResolutionUtils.FitTriangle(
-                (secondaryMainDown, inverseSecondaryVertexOffset), 
-                (inverseSecondaryMainUp, inverseSecondaryVertexOffset + 1), 
-                (secondaryNextDown, inverseSecondaryVertexOffset + 2), 
+                (secondaryNextDown, inverseSecondaryVertexOffset + 2),
+                (inverseSecondaryMainUp, inverseSecondaryVertexOffset + 1),
+                (secondaryMainDown, inverseSecondaryVertexOffset),
                 streams, 
                 Resolution, 
                 inverseTriangleOffset + (Resolution * Resolution)

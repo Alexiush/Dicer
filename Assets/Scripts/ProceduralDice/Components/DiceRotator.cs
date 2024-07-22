@@ -1,17 +1,19 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
-public class DiceRotator : MonoBehaviour
+public class DiceRotator : DiceRotatorBase
 {
     [SerializeField]
     private int _seed;
 
     [SerializeField]
     private ProceduralDie _die;
-    
+    public override int SidesCount => _die.DieSize;
+
     [SerializeField]
     private Vector3 _topDirection;
     [SerializeField] 
@@ -30,8 +32,14 @@ public class DiceRotator : MonoBehaviour
         _die.OnNewGeneration += mesh => RotateDie(_defaultSide);
     }
 
-    public void RotateDie(int side)
+    public override void RotateDie(int side)
     {
+        if (_rotating)
+        {
+            Debug.Log("Already rotating");
+            return;
+        }
+
         _die.transform.rotation = Quaternion.identity;
         _die.SideRotation(side - 1, _topDirection, _forwardDirection);
     }
@@ -40,7 +48,7 @@ public class DiceRotator : MonoBehaviour
     private float _timeLeft;
     private int _processedTargetSide;
 
-    public void RotateDieAnimated(int side, float animationDuration)
+    public override void RotateDieAnimated(int side, float animationDuration)
     {
         if (_rotating)
         {

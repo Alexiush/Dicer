@@ -15,7 +15,7 @@ public class MeshBasedSideTextureRenderer : SideTextureRenderer
         Mesh mesh = _meshSupplier.GetMesh(sideIndex);
         Material material = _meshSupplier.Material;
         canvas.DrawMesh(mesh, material, Matrix4x4.TRS((Vector3)position, Quaternion.Euler(euler), new Vector3(scale.x, scale.y, 1)));
-
+        
         canvas.EndRendering();
 
         return canvas;

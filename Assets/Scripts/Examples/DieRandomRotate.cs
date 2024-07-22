@@ -8,18 +8,16 @@ public class DieRandomRotate : MonoBehaviour
     private int _seed;
 
     [SerializeField]
-    private ProceduralDie _die;
-    [SerializeField]
-    private DiceRotator _rotator;
+    private DiceRotatorBase _rotator;
 
     private void Awake()
     {
         UnityEngine.Random.InitState(_seed);
     }
 
-    public void RandomRotate()
+    public void RandomRotate(float duration)
     {
-        var side = UnityEngine.Random.Range(1, _die.DieSize + 1);
-        _rotator.RotateDieAnimated(side, 3f);
+        var side = UnityEngine.Random.Range(1, _rotator.SidesCount + 1);
+        _rotator.RotateDieAnimated(side, duration);
     }
 }

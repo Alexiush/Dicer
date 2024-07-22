@@ -32,8 +32,32 @@ public class ProceduralDie : MonoBehaviour
 
     [SerializeField]
     private Material _material;
+    public Material Material
+    {
+        get
+        {
+            if (_meshRenderer == null)
+            {
+                return null;
+            }
 
-    private Mesh _mesh;
+            return Application.isEditor ? _meshRenderer.sharedMaterial : _meshRenderer.material;
+        }
+    }
+
+    public Mesh Mesh
+    {
+        get
+        {
+            if (_meshFilter == null)
+            {
+                return null;
+            }
+
+            return Application.isEditor ? _meshFilter.sharedMesh : _meshFilter.mesh;
+        }
+    }
+
     private Vector3[] _vertices, _normals;
     private Vector4[] _tangents;
     private int[] _triangles;
@@ -49,45 +73,31 @@ public class ProceduralDie : MonoBehaviour
         _meshFilter = GetComponent<MeshFilter>();
         _meshRenderer = GetComponent<MeshRenderer>();
 
-        _mesh = new Mesh
+        _meshFilter.mesh = new Mesh
         {
             name = "Procedural Dice"
         };
-
-        _meshFilter.mesh = _mesh;
     }
 
     public delegate void OnNewGenerationEvent(Mesh mesh);
     public event OnNewGenerationEvent OnNewGeneration;
 
-    public bool IsGenerated { get; private set; } = true;
+    public IDiceGenerator Generator => _diceGenerators[_diceGenerator];
 
     public void Generate()
     {
-        if (_mesh == null)
+        if (Mesh == null)
         {
             Debug.Log("Die is not initialized yet");
             return;
         }
 
-        if (!IsGenerated)
-        {
-            Debug.Log("Previous generation process is still going");
-            return;
-        }
+        Generator.Resolution = _resolution;
+        Generator.DieSize = DieSize;
 
-        IsGenerated = false;
-
-        var generator = _diceGenerators[_diceGenerator];
-
-        generator.Resolution = _resolution;
-        generator.DieSize = DieSize;
-
-        if (!generator.Validate())
+        if (!IsValid)
         {
             Debug.LogError("Invalid die data");
-            IsGenerated = true;
-
             return;
         }
 
@@ -97,16 +107,19 @@ public class ProceduralDie : MonoBehaviour
         _triangles = null;
 
         GenerateMesh();
-        OnNewGeneration?.Invoke(_mesh);
+        OnNewGeneration?.Invoke(Mesh);
 
-        _material.SetTexture("_Mask", generator.GenerateNumbersTexture(256, 256, _sideTextureRenderer));
+        _material.SetTexture("_Mask", Generator.GenerateNumbersTexture(256, 256, _sideTextureRenderer));
         _meshRenderer.material = _material;
-
-        IsGenerated = true;
     }
 
     private void Start()
     {
+        if (Mesh.vertexCount != 0)
+        {
+            return;
+        }
+
         Generate();
     }
 
@@ -115,13 +128,15 @@ public class ProceduralDie : MonoBehaviour
         Generate();
     }
 
-    public void SideRotation(int side, Vector3 topDirection, Vector3 forwardDirection) => _diceGenerators[_diceGenerator]
+    public bool IsValid => Generator.Validate();
+
+    public void SideRotation(int side, Vector3 topDirection, Vector3 forwardDirection) => Generator
         .SideRotation(
-            transform, _mesh, side, 
+            transform, Mesh, side, 
             topDirection.normalized,
             forwardDirection.normalized
         );
-    public int GetRolledSide(Vector3 normal) => _diceGenerators[_diceGenerator].GetRolledSide(transform, _mesh, normal.normalized);
+    public int GetRolledSide(Vector3 normal) => Generator.GetRolledSide(transform, Mesh, normal.normalized);
 
     [System.Flags]
     public enum GizmoMode
@@ -138,7 +153,7 @@ public class ProceduralDie : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        if (_gizmos == GizmoMode.Nothing || _mesh == null)
+        if (_gizmos == GizmoMode.Nothing || Mesh == null)
         {
             return;
         }
@@ -150,7 +165,7 @@ public class ProceduralDie : MonoBehaviour
 
         if (_vertices == null)
         {
-            _vertices = _mesh.vertices;
+            _vertices = Mesh.vertices;
         }
 
         Transform t = transform;
@@ -164,22 +179,22 @@ public class ProceduralDie : MonoBehaviour
                 Gizmos.DrawSphere(position, 0.02f);
             }
 
-            if (drawNormals && _mesh.HasVertexAttribute(VertexAttribute.Normal))
+            if (drawNormals && Mesh.HasVertexAttribute(VertexAttribute.Normal))
             {
                 if (_normals == null)
                 {
-                    _normals = _mesh.normals;
+                    _normals = Mesh.normals;
                 }
 
                 Gizmos.color = Color.green;
                 Gizmos.DrawRay(position, t.TransformDirection(_normals[i]) * 0.2f);
             }
 
-            if (drawTangents && _mesh.HasVertexAttribute(VertexAttribute.Tangent))
+            if (drawTangents && Mesh.HasVertexAttribute(VertexAttribute.Tangent))
             {
                 if (_tangents == null)
                 {
-                    _tangents = _mesh.tangents;
+                    _tangents = Mesh.tangents;
                 }
 
                 Gizmos.color = Color.red;
@@ -190,7 +205,7 @@ public class ProceduralDie : MonoBehaviour
             {
                 if (_triangles == null)
                 {
-                    _triangles = _mesh.triangles;
+                    _triangles = Mesh.triangles;
                 }
 
                 float colorStep = 1f / (_triangles.Length - 3);
@@ -237,21 +252,21 @@ public class ProceduralDie : MonoBehaviour
             _diceGenerator = DiceGeneratorJobs[0];
         }
 
-        _dieBuildingJobs[_diceGenerator](_mesh, meshData, _resolution, DieSize, default).Complete();
+        _dieBuildingJobs[_diceGenerator](Mesh, meshData, _resolution, DieSize, default).Complete();
 
-        Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, _mesh);
+        Mesh.ApplyAndDisposeWritableMeshData(meshDataArray, Mesh);
 
         if (_meshOptimization == MeshOptimizationMode.ReorderIndices)
         {
-            _mesh.OptimizeIndexBuffers();
+            Mesh.OptimizeIndexBuffers();
         }
         else if (_meshOptimization == MeshOptimizationMode.ReorderVertices)
         {
-            _mesh.OptimizeReorderVertexBuffer();
+            Mesh.OptimizeReorderVertexBuffer();
         }
         else if (_meshOptimization != MeshOptimizationMode.Nothing)
         {
-            _mesh.Optimize();
+            Mesh.Optimize();
         }
     }
 }

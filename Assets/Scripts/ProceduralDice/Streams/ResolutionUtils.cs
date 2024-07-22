@@ -91,8 +91,6 @@ public static class ResolutionUtils
 
                     vertex.tangent = leftTan + deltaTan * leftOffsetTan;
                 }
-
-                // Debug.Log($"{vertexIndex} {vertexOffset} {verifiedVertexIndex(vertexIndex)} {vertex.position}");
                 stream.SetVertex(verifiedVertexIndex(vertexIndex), vertex);
 
                 if (v > 0)
@@ -100,25 +98,20 @@ public static class ResolutionUtils
                     // Add the common triangle
                     stream.SetTriangle(triangleIndex(), new int3(
                         verifiedVertexIndex(vertexIndex), 
-                        verifiedVertexIndex(vertexIndex - 1), 
-                        verifiedVertexIndex(vertexIndex - level - 1)
+                        verifiedVertexIndex(vertexIndex - level - 1),
+                        verifiedVertexIndex(vertexIndex - 1)
                     ));
                     trianglesCount++;
-
-                    // Debug.Log($"{triangleIndex() - 1} {new int3(vertexIndex, vertexIndex - 1, vertexIndex - level - 1)}");
-                    // Debug.Log($"{triangleIndex() - 1} {new int3(verifiedVertexIndex(vertexIndex), verifiedVertexIndex(vertexIndex - 1), verifiedVertexIndex(vertexIndex - level - 1))}");
 
                     if (v < level)
                     {
                         // Add the inverted triangle
                         stream.SetTriangle(triangleIndex(), new int3(
                             verifiedVertexIndex(vertexIndex),
-                            verifiedVertexIndex(vertexIndex - level - 1),
-                            verifiedVertexIndex(vertexIndex - level)
+                            verifiedVertexIndex(vertexIndex - level),
+                            verifiedVertexIndex(vertexIndex - level - 1)
                         ));
                         trianglesCount++;
-
-                        // Debug.Log($"{triangleIndex() - 1} {new int3(verifiedVertexIndex(vertexIndex), verifiedVertexIndex(vertexIndex - level - 1), verifiedVertexIndex(vertexIndex - level))}");
                     }
                 }
             }
