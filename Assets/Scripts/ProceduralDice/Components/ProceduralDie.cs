@@ -25,7 +25,18 @@ public class ProceduralDie : MonoBehaviour
         .Where(t => t.GetInterfaces().Contains(typeof(IDiceGenerator)))
         .ToDictionary(keySelector: t => t.Name, elementSelector: t => (Activator.CreateInstance(t) as IDiceGenerator));
 
-    private List<string> DiceGeneratorJobs => _dieBuildingJobs.Keys.ToList();
+    public List<string> DiceGeneratorJobs => _dieBuildingJobs.Keys.ToList();
+
+    public void SetGenerator(string name)
+    {
+        if (!DiceGeneratorJobs.Contains(name))
+        {
+            Debug.LogError($"There is no die generator by name {name}");
+            return;
+        }
+
+        _diceGenerator = name;
+    }
 
     [SerializeField, Dropdown("DiceGeneratorJobs")]
     private string _diceGenerator;
@@ -229,7 +240,7 @@ public class ProceduralDie : MonoBehaviour
     [SerializeField, Range(1, 5)]
     private int _resolution = 1;
     [field: SerializeField, Range(1, 100)]
-    public int DieSize { get; private set; } = 1;
+    public int DieSize { get; set; } = 1;
 
     [System.Flags]
     public enum MeshOptimizationMode

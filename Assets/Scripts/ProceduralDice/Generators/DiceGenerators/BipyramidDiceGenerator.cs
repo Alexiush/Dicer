@@ -22,13 +22,7 @@ namespace ProceduralMeshes.Generators
         public int DieSize { get; set; }
         public int ActualDieSize => DieSize;
 
-        public bool Validate()
-        {
-            bool validSize = ActualDieSize % 4 == 0 && ActualDieSize >= 8;
-            bool validResolution = Resolution > 0;
-
-            return validSize && validResolution;
-        }
+        public ISizeConstraint Constraint => new LinearSizeConstraint(4, 8);
 
         private static readonly float _apexDelta = 1.0f;
         public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<BipyramidDiceGenerator, MultiStream>.ScheduleParallel;

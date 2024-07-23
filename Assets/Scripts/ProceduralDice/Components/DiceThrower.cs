@@ -28,6 +28,7 @@ public class DiceThrower : MonoBehaviour
     private void Awake()
     {
         ResetState();
+        // OnRollFinished += (side) => Debug.Log($"Die stopped, topmost side: {side}");
     }
 
     [SerializeField]
@@ -56,16 +57,15 @@ public class DiceThrower : MonoBehaviour
     [SerializeField]
     private Vector3 _normal = Vector3.up;
 
+    public delegate void OnRollFinishedEvent(int side);
+    public OnRollFinishedEvent OnRollFinished;
+
     private void ProcessRollResult()
     {
         _watching = false;
 
-        // Procedural die must provide functionality for detecting it's current topmost side
-
         int selectedSide = _die.GetRolledSide(_normal);
-        Debug.Log($"Die stopped, topmost side: {selectedSide}");
-
-        // Procedural die must provide functionality for getting the data associated with it's triangles
+        OnRollFinished?.Invoke(selectedSide);
     }
 
     private void FixedUpdate()

@@ -11,9 +11,7 @@ using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor.U2D.Sprites;
-using static UnityEngine.Rendering.DebugUI.Table;
 using UnityEngine.Rendering;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 
 [RequireComponent(typeof(Image))]
 public class UIDie : DiceRotatorBase

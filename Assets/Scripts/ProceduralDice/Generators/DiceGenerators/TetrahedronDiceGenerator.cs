@@ -27,14 +27,7 @@ namespace ProceduralMeshes.Generators
 
         // Is expected to be used for only one valid state
         public int ActualDieSize => DieSize;
-
-        public bool Validate()
-        {
-            bool validSize = DieSize == 4;
-            bool validResolution = Resolution > 0;
-
-            return validSize && validResolution;
-        }
+        public ISizeConstraint Constraint => new LinearSizeConstraint(0, 4);
 
         public DieMeshJobScheduleDelegate DefaultDieJobHandle => DieMeshJob<TetrahedronDiceGenerator, MultiStream>.ScheduleParallel;
 

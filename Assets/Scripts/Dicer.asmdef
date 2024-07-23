@@ -1,0 +1,30 @@
+{
+    "name": "Dicer",
+    "rootNamespace": "",
+    "references": [
+        "GUID:2c573e6b271651846a79655161004c5b",
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:9c6dda6c7922c624cb7ea9a7f1c7d54a",
+        "GUID:b75d3cd3037d383a8d1e2f9a26d73d8a",
+        "GUID:725d36de53dc30f9a00742ae18029bcc",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:329b4ccd385744985bf3f83cfd77dfe7",
+        "GUID:904d80dccad704a3f95e42bd0ad5d960",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:6546d7765b4165b40850b3667f981c26",
+        "GUID:656e461844099ae43a609ff6109b0877",
+        "GUID:bb05cab7d802aa5468f8f2f86840d984",
+        "GUID:343deaaf83e0cee4ca978e7df0b80d21",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:55f11565b5671884e8cd5c1963b407b8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

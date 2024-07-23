@@ -27,13 +27,7 @@ namespace ProceduralMeshes.Generators
             }
         }
 
-        public bool Validate()
-        {
-            bool validSize = ActualDieSize % 4 != 0 && ActualDieSize >= 6;
-            bool validResolution = Resolution > 0;
-
-            return validSize && validResolution;
-        }
+        public ISizeConstraint Constraint => new LinearSizeConstraint(4, 6);
 
         private float BaseDelta => (1 - sin((90 - Angle / 2) * Mathf.Deg2Rad)) / (1 + sin((90 - Angle / 2) * Mathf.Deg2Rad));
         private static readonly float _apexDelta = 1.0f;
