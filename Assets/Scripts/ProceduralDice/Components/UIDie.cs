@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor.U2D.Sprites;
 using UnityEngine.Rendering;
+using TMPro;
 
 [RequireComponent(typeof(Image))]
 public class UIDie : DiceRotatorBase
@@ -26,10 +27,30 @@ public class UIDie : DiceRotatorBase
     [SerializeField]
     private int _defaultSide;
 
+    [SerializeField]
+    private bool _explicitNumbers;
+    public bool ExplicitNumbers
+    {
+        get
+        {
+            return _explicitNumbers;
+        }
+        set
+        {
+            _explicitNumbers = value;
+            _numbersLabel.enabled = _explicitNumbers;
+        }
+    }
+
+    [SerializeField]
+    private TextMeshProUGUI _numbersLabel;
+
     private void Awake()
     {
         UnityEngine.Random.InitState(_seed);
         _die = GetComponent<Image>();
+
+        _numbersLabel.text = string.Empty;
     }
 
     private void Start()
@@ -46,6 +67,11 @@ public class UIDie : DiceRotatorBase
         }
 
         _die.sprite = dieData.SidesTextures[side - 1];
+
+        if (_explicitNumbers)
+        {
+            _numbersLabel.text = side.ToString();
+        }
     }
 
     private bool _rotating;
@@ -79,6 +105,12 @@ public class UIDie : DiceRotatorBase
         if (_timeLeft > 0)
         {
             _die.sprite = dieData.AnimationFrames[_frame % dieData.AnimationFrames.Count];
+
+            if (_explicitNumbers)
+            {
+                _numbersLabel.text = UnityEngine.Random.Range(1, SidesCount + 1).ToString();
+            }
+            
             _frame++;
         }
         else
