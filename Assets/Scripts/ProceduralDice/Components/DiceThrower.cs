@@ -28,7 +28,6 @@ public class DiceThrower : MonoBehaviour
     private void Awake()
     {
         ResetState();
-        // OnRollFinished += (side) => Debug.Log($"Die stopped, topmost side: {side}");
     }
 
     [SerializeField]

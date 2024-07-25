@@ -76,27 +76,27 @@ public class DiePrerenderer : EditorWindow
     }
 
     private string GetSpritesPath(string dieName) => GetPath(
-        dieName + "_sides.png",
-        "Select sprites path",
-        "Can't generate UIDieData - Sprites directory is not in the project",
-        "Can't generate UIDieData - Sprites directory does not exist",
-        "Can't generate UIDieData - Sprites are already generated"
+        name: dieName + "_sides.png",
+        prompt: "Select sprites path",
+        badFileMessage: "Can't generate UIDieData - Sprites directory is not in the project",
+        badFolderMessage: "Can't generate UIDieData - Sprites directory does not exist",
+        fileAlreadyExistsMessage: "Can't generate UIDieData - Sprites are already generated"
     );
 
     private string GetAnimationPath(string dieName) => GetPath(
-        dieName + "_anim.png",
-        "Select animation data path",
-        "Can't generate UIDieData - Sprites directory is not in the project",
-        "Can't generate UIDieData - Animation directory does not exist",
-        "Can't generate UIDieData - Animation directory does not exist"
+        name: dieName + "_anim.png",
+        prompt: "Select animation data path",
+        badFileMessage: "Can't generate UIDieData - Sprites directory is not in the project",
+        badFolderMessage: "Can't generate UIDieData - Animation directory does not exist",
+        fileAlreadyExistsMessage: "Can't generate UIDieData - Animation directory does not exist"
     );
 
     private string GetDieDataPath(string dieName) => GetPath(
-        dieName + "_UIDieData.asset",
-        "Select die data path",
-        "Can't generate UIDieData - Sprites directory is not in the project",
-        "Can't generate UIDieData - UIDieData directory does not exist",
-        "Can't generate UIDieData - UIDieData is already generated"
+        name: dieName + "_UIDieData.asset",
+        prompt: "Select die data path",
+        badFileMessage: "Can't generate UIDieData - Sprites directory is not in the project",
+        badFolderMessage: "Can't generate UIDieData - UIDieData directory does not exist",
+        fileAlreadyExistsMessage: "Can't generate UIDieData - UIDieData is already generated"
     );
 
     private (Texture2D, Vector2Int) PackToSpritesheet(Texture2D[] textures, Vector2Int textureSize)
@@ -183,16 +183,14 @@ public class DiePrerenderer : EditorWindow
         AssetDatabase.Refresh();
     }
 
-    private string GenerateSidesSpritesheet(Vector2Int textureSize, string spritesheetPath, string spritesheetName)
+    private void GenerateSpritesheet(Vector2Int textureSize, string spritesheetPath, string spritesheetName, int rendersCount, Action<int> prepareOnIndex)
     {
-        Texture2D[] sides = new Texture2D[Die.Generator.ActualDieSize];
-
+        Texture2D[] sides = new Texture2D[rendersCount];
         var initialRotation = Die.transform.rotation;
 
-        for (int side = 0; side < Die.Generator.ActualDieSize; side++)
+        for (int index = 0; index < rendersCount; index++)
         {
-            Die.transform.rotation = Quaternion.identity;
-            Die.SideRotation(side, Vector3.up, Vector3.back);
+            prepareOnIndex(index);
 
             var texture = new Texture2D(textureSize.x, textureSize.y, TextureFormat.RGBA32, false);
             var renderTexture = RenderTexture.GetTemporary(textureSize.x, textureSize.y);
@@ -205,7 +203,7 @@ public class DiePrerenderer : EditorWindow
             texture.Apply();
 
             renderTexture.EndRendering();
-            sides[side] = texture;
+            sides[index] = texture;
 
             renderTexture.Release();
         }
@@ -217,49 +215,33 @@ public class DiePrerenderer : EditorWindow
         AssetDatabase.Refresh();
 
         ImportTexturesAsSprites(spritesheetPath, spritesheetName, sides.Length, textureSize, sidesSpriteSheet.Item2);
-
-        return spritesheetPath;
     }
 
-    private string GenerateAnimationSpritesheet(Vector2Int textureSize, string spritesheetPath, string spritesheetName)
-    {
-        Texture2D[] frames = new Texture2D[60];
+    private void GenerateSidesSpritesheet(Vector2Int textureSize, string spritesheetPath, string spritesheetName) => GenerateSpritesheet(
+        textureSize,
+        spritesheetPath,
+        spritesheetName,
+        Die.Generator.ActualDieSize,
+        (int index) =>
+        {
+            Die.transform.rotation = Quaternion.identity;
+            Die.SideRotation(index, Vector3.up, Vector3.back);
+        }
+    );
 
-        var initialRotation = Die.transform.rotation;
-
-        for (int frame = 0; frame < 60; frame++)
+    private void GenerateAnimationSpritesheet(Vector2Int textureSize, string spritesheetPath, string spritesheetName) => GenerateSpritesheet(
+        textureSize,
+        spritesheetPath,
+        spritesheetName,
+        60,
+        (int index) =>
         {
             Die.transform.Rotate(UnityEngine.Random.insideUnitSphere * 180);
-
-            var texture = new Texture2D(textureSize.x, textureSize.y, TextureFormat.RGBA32, false);
-            var renderTexture = RenderTexture.GetTemporary(textureSize.x, textureSize.y);
-
-            renderTexture.BeginPerspectiveRendering(60, Vector3.back * 2.5f, Quaternion.identity);
-            renderTexture.DrawMesh(Die.Mesh, Die.Material, Matrix4x4.TRS(Vector3.zero, Die.transform.rotation, Vector3.one));
-
-            texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-            texture.Apply();
-
-            renderTexture.EndRendering();
-            frames[frame] = texture;
-
-            renderTexture.Release();
         }
-
-        Die.transform.rotation = initialRotation;
-
-        (Texture2D, Vector2Int) animationSpriteSheet = PackToSpritesheet(frames, textureSize);
-        File.WriteAllBytes(spritesheetPath, animationSpriteSheet.Item1.EncodeToPNG());
-        AssetDatabase.Refresh();
-
-        ImportTexturesAsSprites(spritesheetPath, spritesheetName, frames.Length, textureSize, animationSpriteSheet.Item2);
-
-        return spritesheetPath;
-    }
+    );
 
     private void GenerateUIDieData(Vector2Int textureSize)
     {
-        // Validate procedural die
         if (Die == null || !Die.IsValid)
         {
             Debug.LogError("Can't generate UIDieData - Die is invalid");
@@ -269,25 +251,26 @@ public class DiePrerenderer : EditorWindow
         Die.Generate();
 
         var spritesPath = GetSpritesPath(_name);
-        string sidesSpritesheet = GenerateSidesSpritesheet(textureSize, $"{spritesPath}/{_name}_sides.png", $"{_name}_sides");
+        string sidesSpritesheet = $"{spritesPath}/{_name}_sides.png";
+        GenerateSidesSpritesheet(textureSize, sidesSpritesheet, $"{_name}_sides");
 
         var animationPath = GetAnimationPath(_name);
-        string animationSpritesheet = GenerateAnimationSpritesheet(textureSize, $"{animationPath}/{_name}_anim.png", $"{_name}_anim");
+        string animationSpritesheet = $"{animationPath}/{_name}_anim.png";
+        GenerateAnimationSpritesheet(textureSize, animationSpritesheet, $"{_name}_anim");
 
         var dieDataPath = GetDieDataPath(_name);
 
         var uiDieData = ScriptableObject.CreateInstance<UIDieData>();
         uiDieData.name = _name;
 
-        uiDieData.SidesTextures = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets" + sidesSpritesheet.Substring(Application.dataPath.Length))
+        List<Sprite> LoadSpritesheet(string spritesheetPath) => UnityEditor.AssetDatabase
+            .LoadAllAssetsAtPath("Assets" + spritesheetPath.Substring(Application.dataPath.Length))
             .Where(o => o is Sprite)
             .Cast<Sprite>()
             .ToList();
 
-        uiDieData.AnimationFrames = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets" + animationSpritesheet.Substring(Application.dataPath.Length))
-            .Where(o => o is Sprite)
-            .Cast<Sprite>()
-            .ToList();
+        uiDieData.SidesTextures = LoadSpritesheet(sidesSpritesheet);
+        uiDieData.AnimationFrames = LoadSpritesheet(animationSpritesheet);
 
         AssetDatabase.CreateAsset(uiDieData, $"Assets/{dieDataPath.Substring(Application.dataPath.Length)}/{_name}_UIDieData.asset");
         AssetDatabase.SaveAssets();

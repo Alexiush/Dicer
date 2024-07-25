@@ -25,7 +25,6 @@ namespace ProceduralMeshes.Generators
 
         public int DieSize {  get; set; }
 
-        // Is expected to be used for only one valid state
         public int ActualDieSize => DieSize;
         public ISizeConstraint Constraint => new LinearSizeConstraint(0, 4);
 
@@ -125,8 +124,6 @@ namespace ProceduralMeshes.Generators
                     Vector3 cornerEuler = GetCornerAngle(corner);
                     float2 offset = (texCorners[corner] - center) / 2;
 
-                    // Draw the number i+1 in the center
-                    // Set textMeshPro text and direction
                     var index = Enumerable.Range(0, 4)
                         .OrderBy(i => distancesq(GetCorner(i), figureCorners[corner]))
                         .First();

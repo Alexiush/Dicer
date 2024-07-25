@@ -111,16 +111,12 @@ namespace ProceduralMeshes.Generators
             return texture;
         }
 
-        private static Vector3 GeoCenter(Transform transform, Mesh mesh, IEnumerable<int> indices) => indices
-            .Select(index => mesh.vertices[index])
-            .Aggregate((acc, e) => acc + e) / indices.Count();
-
         public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection)
         {
             int mainVertexOffset = side * ((Resolution + 1) * (Resolution + 1) + (Resolution + 1));
             var indices = Enumerable.Range(mainVertexOffset, 3);
 
-            Vector3 center = GeoCenter(transform, mesh, indices);
+            Vector3 center = GenerationUtils.GeoCenter(transform, mesh, indices);
             var rotation = Quaternion.FromToRotation(center.normalized, forwardDirection);
             transform.rotation *= rotation;
 
@@ -132,7 +128,7 @@ namespace ProceduralMeshes.Generators
 
         public int GetRolledSide(Transform transform, Mesh mesh, Vector3 normal)
         {
-            Func<IEnumerable<int>, Vector3> SideCenter = (indices) => transform.rotation * GeoCenter(transform, mesh, indices);
+            Func<IEnumerable<int>, Vector3> SideCenter = (indices) => transform.rotation * GenerationUtils.GeoCenter(transform, mesh, indices);
 
             Func<Vector3, float> Distance = (position) => (-normal - Vector3.Scale(position, normal)).sqrMagnitude;
 
