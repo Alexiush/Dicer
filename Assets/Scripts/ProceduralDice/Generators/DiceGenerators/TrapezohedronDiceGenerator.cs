@@ -18,16 +18,24 @@ namespace ProceduralMeshes.Generators
         public int JobLength => ActualDieSize / 2;
         public Bounds Bounds => new Bounds(Vector3.zero, new Vector3(2f, 2f, 2f));
         public int Resolution { get; set; }
-        public int DieSize { get; set; }
-        public int ActualDieSize
-        {
+
+        private int _dieSize;
+        public int ScalingFactor { get; private set; }
+        public int DieSize 
+        { 
             get
             {
-                return DieSize % 2 == 0 ? DieSize : DieSize * 2;
+                return _dieSize;
+            }
+            set
+            {
+                _dieSize = value;
+                ScalingFactor = Constraint.GetScalingFactor(_dieSize);
             }
         }
+        public int ActualDieSize => DieSize * ScalingFactor;
 
-        public ISizeConstraint Constraint => new LinearSizeConstraint(4, 6);
+        public ISizeConstraint Constraint => new LinearSizeConstraint(4, 6, true);
 
         private float BaseDelta => (1 - sin((90 - Angle / 2) * Mathf.Deg2Rad)) / (1 + sin((90 - Angle / 2) * Mathf.Deg2Rad));
         private static readonly float _apexDelta = 1.0f;
