@@ -95,6 +95,11 @@ public class ProceduralDie : MonoBehaviour
 
     public IDiceGenerator Generator => _diceGenerators[_diceGenerator];
 
+    [SerializeField]
+    private bool _generateSidesTextures = true;
+    [SerializeField]
+    private int _textureSize = 256;
+
     public void Generate()
     {
         if (Mesh == null)
@@ -120,8 +125,12 @@ public class ProceduralDie : MonoBehaviour
         GenerateMesh();
         OnNewGeneration?.Invoke(Mesh);
 
-        _material.SetTexture("_Mask", Generator.GenerateNumbersTexture(256, 256, _sideTextureRenderer));
-        _meshRenderer.material = _material;
+        if (_generateSidesTextures)
+        {
+            var mask = Generator.GenerateSidesTexture(_textureSize, _textureSize, _sideTextureRenderer);
+            _material.SetTexture("_Mask", mask);
+            _meshRenderer.material = _material;
+        }
     }
 
     private void Start()

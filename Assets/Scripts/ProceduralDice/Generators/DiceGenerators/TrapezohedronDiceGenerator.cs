@@ -79,7 +79,7 @@ namespace ProceduralMeshes.Generators
             }
         }
 
-        public Texture2D GenerateNumbersTexture(int width, int height, SideTextureRenderer renderer)
+        public Texture2D GenerateSidesTexture(int width, int height, SideTextureRenderer renderer)
         {
             var texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
             var temporaryTexture = RenderTexture.GetTemporary(width, height);
