@@ -62,6 +62,12 @@ namespace ProceduralMeshes.Generators
             cos((Angle * i - Shift + 90f) * Mathf.Deg2Rad)
         );
 
+        private float SideLength => math.length(new float3(0, _apexDelta, 0) - GetBottomPolygonVertex(0));
+        private float SecondaryTriangleLength => math.length(
+            (GetUpperPolygonVertex(0) + GetUpperPolygonVertex(1) / 2 - GetBottomPolygonVertex(1))
+        );
+        private float SecondaryTriangleRatio => SecondaryTriangleLength / (SideLength + SecondaryTriangleLength);
+
         private float2 GetTexCoord(int i)
         {
             if (i > ActualDieSize)
@@ -71,11 +77,11 @@ namespace ProceduralMeshes.Generators
 
             if (i % 2 == 0)
             {
-                return new float2(1, 1 - i / (2 * (ActualDieSize / 2 + 1f / 2)));
+                return new float2(1 - SecondaryTriangleRatio, 1 - i / (2 * (ActualDieSize / 2 + 1f / 2)));
             }
             else
             {
-                return new float2(0, (ActualDieSize + 1 - i) / (2 * (ActualDieSize / 2 + 1f / 2)));
+                return new float2(SecondaryTriangleRatio, (ActualDieSize + 1 - i) / (2 * (ActualDieSize / 2 + 1f / 2)));
             }
         }
 
@@ -91,20 +97,23 @@ namespace ProceduralMeshes.Generators
             {
                 float2 position;
                 Vector3 euler;
-                float totalOffset = offset * (2 * ((i % (ActualDieSize / 2)) + 1f / 2));
+
+                float xOffsetLower = (3 * SecondaryTriangleRatio + 1) / 6f;
+                float xOffsetUpper = (5 - 3 * SecondaryTriangleRatio) / 6f;
+                float yOffset = offset * (2 * ((i % (ActualDieSize / 2)) + 1f / 2));
 
                 if (i < ActualDieSize / 2)
                 {
                     // Upper pass
 
-                    position = new float2(2f / 3f, 1 - totalOffset);
+                    position = new float2(xOffsetUpper, 1 - yOffset);
                     euler = new Vector3(180, 0, 90);
                 }
                 else
                 {
                     // Lower pass
 
-                    position = new float2(1f / 3f, 0 + totalOffset);
+                    position = new float2(xOffsetLower, 0 + yOffset);
                     euler = new Vector3(180, 180, -90);
                 }
 
@@ -122,7 +131,12 @@ namespace ProceduralMeshes.Generators
         public void SideRotation(Transform transform, Mesh mesh, int side, Vector3 topDirection, Vector3 forwardDirection)
         {
             int mainVertexOffset = side * ((Resolution + 1) * (Resolution + 1) + (Resolution + 1));
-            var indices = Enumerable.Range(mainVertexOffset, 3);
+            var indicesMain = Enumerable.Range(mainVertexOffset, 3);
+
+            int secondaryVertexOffset = side * ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) + ((Resolution + 1) * (Resolution + 1) + (Resolution + 1)) / 2;
+            var indicesSecondary = Enumerable.Range(secondaryVertexOffset, 3);
+
+            var indices = indicesMain.Concat(indicesSecondary);
 
             Vector3 center = GenerationUtils.GeoCenter(transform, mesh, indices);
             var rotation = Quaternion.FromToRotation(center.normalized, forwardDirection);
@@ -171,18 +185,13 @@ namespace ProceduralMeshes.Generators
             vertex.tangent.xz = GetUpperPolygonVertexTangent(i);
             vertex.texCoord0 = GetTexCoord(textureOffset);
             var mainUp = vertex;
-
-            vertex.texCoord0 = float2(-1, -1);
             var secondaryMainUp = vertex;
             var inverseSecondaryMainUp = vertex;
-
 
             vertex.position = vertex.normal = GetUpperPolygonVertex(i + 1);
             vertex.tangent.xz = GetUpperPolygonVertexTangent(i + 1);
             vertex.texCoord0 = GetTexCoord(textureOffset + 2);
             var nextUp = vertex;
-
-            vertex.texCoord0 = float2(-1, -1);
             var secondaryNextUp = vertex;
 
             vertex.position = vertex.normal = Vector3.up * _apexDelta;
@@ -203,18 +212,20 @@ namespace ProceduralMeshes.Generators
             vertex.tangent.xz = GetBottomPolygonVertexTangent(i);
             vertex.texCoord0 = GetTexCoord(inverseTextureOffset);
             var mainDown = vertex;
-
-            vertex.texCoord0 = float2(-1, -1);
             var secondaryMainDown = vertex;
 
             vertex.position = vertex.normal = GetBottomPolygonVertex(i + 1);
             vertex.tangent.xz = GetBottomPolygonVertexTangent(i + 1);
             vertex.texCoord0 = GetTexCoord(inverseTextureOffset - 2);
             var nextDown = vertex;
-
-            vertex.texCoord0 = float2(-1, -1);
             var secondaryNextDown = vertex;
-            var inverseSecondaryMainDown = vertex;
+            var inverseSecondaryNextDown = vertex;
+
+            inverseSecondaryMainUp.texCoord0.x = 0;
+            inverseSecondaryMainUp.texCoord0.y = (secondaryMainDown.texCoord0.y + secondaryNextDown.texCoord0.y) / 2;
+
+            inverseSecondaryNextDown.texCoord0.x = 1;
+            inverseSecondaryNextDown.texCoord0.y = (secondaryMainUp.texCoord0.y + secondaryNextUp.texCoord0.y) / 2;
 
             vertex.position = vertex.normal = Vector3.down * _apexDelta;
             vertex.tangent = new float4(0, 0, -1, -1);
@@ -232,13 +243,13 @@ namespace ProceduralMeshes.Generators
 
             ResolutionUtils.FitTriangle(
                 (secondaryMainUp, secondaryVertexOffset), 
-                (inverseSecondaryMainDown, secondaryVertexOffset + 1), 
+                (inverseSecondaryNextDown, secondaryVertexOffset + 1), 
                 (secondaryNextUp, secondaryVertexOffset + 2), 
                 streams, 
                 Resolution, 
                 triangleOffset + (Resolution * Resolution)
             );
-            
+
             ResolutionUtils.FitTriangle(
                 (secondaryNextDown, inverseSecondaryVertexOffset + 2),
                 (inverseSecondaryMainUp, inverseSecondaryVertexOffset + 1),
