@@ -1,0 +1,30 @@
+{
+  "name": "com.alexiush.dicer",
+  "displayName": "Dicer",
+  "version": "0.1.0",
+  "description": "Utility for procedural generation of fair dice of any size and their management",
+  "unity": "2022.3",
+  "unityRelease": "5f1",
+  "licensesUrl": "https://github.com/Alexiush/Dicer/blob/main/LICENSE.md",
+  "keywords": [
+    "ProceduralGeneration",
+    "Dice"
+  ],
+  "author": {
+    "name": "Alexiush",
+    "email": "streltsov2609@gmail.com",
+    "url": "https://github.com/Alexiush"
+  },
+  "samples": [
+    {
+      "displayName": "UI Dice",
+      "description": "Example on how die generation and die rendering features of Dicer can be used to display dice in UI",
+      "path": "Samples~/BaseDocument"
+    },
+    {
+      "displayName": "Tutorial with illustrations",
+      "description": "Example on interactive dice created with Dicer",
+      "path": "Samples~/TutorialExample"
+    }
+  ]
+}
