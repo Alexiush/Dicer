@@ -7,6 +7,8 @@ using ProceduralMeshes.Generators;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Dicer.Components;
+using Dicer.Generators;
 
 public class DieFairnessTest
 {

@@ -1,16 +1,18 @@
-using Nothke.Utils;
 using ProceduralMeshes.Streams;
+using ProceduralMeshes.Generators;
+using ProceduralMeshes;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
+using Dicer.TextureGeneration;
+using Dicer.Constraints;
+using Dicer.Generators;
 
 using static Unity.Mathematics.math;
 
-namespace ProceduralMeshes.Generators
+namespace Dicer.Generators
 {
     public struct BipyramidDiceGenerator : IDiceGenerator
     {

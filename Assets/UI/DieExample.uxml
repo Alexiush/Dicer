@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="Panel" style="flex-grow: 1; background-color: rgb(255, 6, 6); margin-left: 1315px; margin-right: 105px; margin-top: 100px; margin-bottom: 100px; background-image: none; justify-content: center; align-items: center;">
         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: space-between; align-self: auto; align-items: center; margin-top: 200px; margin-bottom: 100px;">
-            <UIElementDie name="UIDie" style="width: 384px; height: 384px;" />
+            <Dicer.UI.UIElementDie name="UIDie" style="width: 384px; height: 384px;" />
             <ui:Button text="Rotate!" display-tooltip-when-elided="true" name="Rotate" style="background-color: rgb(255, 255, 255); width: 320px; height: 90px; margin-top: 2px; -unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&amp;guid=e3265ab4bf004d28a9537516768c1c75&amp;type=3#LiberationSans&apos;); font-size: 36px;" />
         </ui:VisualElement>
     </ui:VisualElement>

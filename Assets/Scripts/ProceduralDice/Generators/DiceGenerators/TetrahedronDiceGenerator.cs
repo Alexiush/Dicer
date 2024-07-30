@@ -1,19 +1,17 @@
-using Nothke.Utils;
 using ProceduralMeshes.Streams;
+using ProceduralMeshes.Generators;
+using ProceduralMeshes;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using TMPro;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using Dicer.Constraints;
+using Dicer.TextureGeneration;
 
 using static Unity.Mathematics.math;
-using static UnityEngine.GraphicsBuffer;
-using static UnityEngine.UI.GridLayoutGroup;
 
-namespace ProceduralMeshes.Generators
+namespace Dicer.Generators
 {
     public struct TetrahedronDiceGenerator : IDiceGenerator
     {

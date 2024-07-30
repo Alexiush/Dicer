@@ -1,15 +1,17 @@
-using Nothke.Utils;
 using ProceduralMeshes.Streams;
+using ProceduralMeshes.Generators;
+using ProceduralMeshes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
+using Dicer.Constraints;
+using Dicer.TextureGeneration;
 
 using static Unity.Mathematics.math;
 
-namespace ProceduralMeshes.Generators
+namespace Dicer.Generators
 {
     public struct TrapezohedronDiceGenerator : IDiceGenerator
     {

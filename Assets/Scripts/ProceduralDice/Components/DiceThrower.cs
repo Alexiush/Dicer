@@ -1,108 +1,107 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-public class DiceThrower : MonoBehaviour
+namespace Dicer.Components
 {
-    [SerializeField]
-    private int _seed;
-
-    [SerializeField]
-    private Rigidbody _diePhysics;
-    [SerializeField]
-    private ProceduralDie _die;
-
-    [SerializeField]
-    private float _forceModifier;
-    [SerializeField]
-    private float _torqueModifier;
-
-    public void ResetState()
+    public class DiceThrower : MonoBehaviour
     {
-        UnityEngine.Random.InitState(_seed);
-    }
+        [SerializeField]
+        private int _seed;
 
-    private void Awake()
-    {
-        ResetState();
-    }
+        [SerializeField]
+        private Rigidbody _diePhysics;
+        [SerializeField]
+        private ProceduralDie _die;
 
-    [SerializeField]
-    private Vector3 _defaultPosition;
+        [SerializeField]
+        private float _forceModifier;
+        [SerializeField]
+        private float _torqueModifier;
 
-    public void Roll()
-    {
-        if (_watching)
+        public void ResetState()
         {
-            Debug.Log("Die is already rolling");
-            return; 
+            UnityEngine.Random.InitState(_seed);
         }
 
-        _die.transform.position = _defaultPosition;
-
-        _diePhysics.AddRelativeTorque(UnityEngine.Random.insideUnitSphere * _torqueModifier, ForceMode.Impulse);
-        _diePhysics.AddRelativeForce(UnityEngine.Random.insideUnitSphere * _forceModifier, ForceMode.Impulse);
-
-        _lastKnownPosition = _diePhysics.position + UnityEngine.Random.insideUnitSphere;
-        _watching = true;
-    }
-
-    private bool _watching;
-    private Vector3 _lastKnownPosition;
-
-    [SerializeField]
-    private Vector3 _normal = Vector3.up;
-
-    public delegate void OnRollFinishedEvent(int side);
-    public OnRollFinishedEvent OnRollFinished;
-
-    private void ProcessRollResult()
-    {
-        _watching = false;
-
-        int selectedSide = _die.GetRolledSide(_normal);
-        OnRollFinished?.Invoke(selectedSide);
-    }
-
-    private void FixedUpdate()
-    {
-        if (_watching)
+        private void Awake()
         {
-            var currentPosition = _diePhysics.position;
-            var delta = currentPosition - _lastKnownPosition;
+            ResetState();
+        }
 
-            if (delta == Vector3.zero)
+        [SerializeField]
+        private Vector3 _defaultPosition;
+
+        public void Roll()
+        {
+            if (_watching)
             {
-                ProcessRollResult();
+                Debug.Log("Die is already rolling");
+                return;
             }
 
-            _lastKnownPosition = currentPosition;
+            _die.transform.position = _defaultPosition;
+
+            _diePhysics.AddRelativeTorque(UnityEngine.Random.insideUnitSphere * _torqueModifier, ForceMode.Impulse);
+            _diePhysics.AddRelativeForce(UnityEngine.Random.insideUnitSphere * _forceModifier, ForceMode.Impulse);
+
+            _lastKnownPosition = _diePhysics.position + UnityEngine.Random.insideUnitSphere;
+            _watching = true;
+        }
+
+        private bool _watching;
+        private Vector3 _lastKnownPosition;
+
+        [SerializeField]
+        private Vector3 _normal = Vector3.up;
+
+        public delegate void OnRollFinishedEvent(int side);
+        public OnRollFinishedEvent OnRollFinished;
+
+        private void ProcessRollResult()
+        {
+            _watching = false;
+
+            int selectedSide = _die.GetRolledSide(_normal);
+            OnRollFinished?.Invoke(selectedSide);
+        }
+
+        private void FixedUpdate()
+        {
+            if (_watching)
+            {
+                var currentPosition = _diePhysics.position;
+                var delta = currentPosition - _lastKnownPosition;
+
+                if (delta == Vector3.zero)
+                {
+                    ProcessRollResult();
+                }
+
+                _lastKnownPosition = currentPosition;
+            }
         }
     }
-}
 
-[CustomEditor(typeof(DiceThrower))]
-public class DiceThrowerEditor : Editor
-{
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(DiceThrower))]
+    public class DiceThrowerEditor : Editor
     {
-        base.OnInspectorGUI();
-
-        var diceThrower = target as DiceThrower;
-
-        EditorGUILayout.Space(20f);
-
-        if (GUILayout.Button("Throw") && Application.isPlaying)
+        public override void OnInspectorGUI()
         {
-            diceThrower.Roll();
-        }
+            base.OnInspectorGUI();
 
-        if (GUILayout.Button("Reset state") && Application.isPlaying)
-        {
-            diceThrower.ResetState();
+            var diceThrower = target as DiceThrower;
+
+            EditorGUILayout.Space(20f);
+
+            if (GUILayout.Button("Throw") && Application.isPlaying)
+            {
+                diceThrower.Roll();
+            }
+
+            if (GUILayout.Button("Reset state") && Application.isPlaying)
+            {
+                diceThrower.ResetState();
+            }
         }
     }
 }

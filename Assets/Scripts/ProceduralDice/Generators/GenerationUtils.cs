@@ -1,19 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
 
-public static class GenerationUtils
+namespace Dicer.Generators
 {
-    public static Vector3 GeoCenter(Transform transform, Mesh mesh, IEnumerable<int> indices)
+    public static class GenerationUtils
     {
-        Vector3 sum = Vector3.zero;
-        foreach (int index in indices)
+        public static Vector3 GeoCenter(Transform transform, Mesh mesh, IEnumerable<int> indices)
         {
-            sum += mesh.vertices[index];
-        }
+            Vector3 sum = Vector3.zero;
+            foreach (int index in indices)
+            {
+                sum += mesh.vertices[index];
+            }
 
-        return sum / indices.Count();
+            return sum / indices.Count();
+        }
     }
 }

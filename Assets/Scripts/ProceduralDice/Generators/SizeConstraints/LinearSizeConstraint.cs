@@ -3,114 +3,116 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
-using UnityEngine;
 
-public class LinearSizeConstraint : ISizeConstraint
+namespace Dicer.Constraints
 {
-    public LinearSizeConstraint(int2 constraintFormula, bool allowRepetition = false)
+    public class LinearSizeConstraint : ISizeConstraint
     {
-        ConstraintFormula = constraintFormula;
-        AllowRepetition = allowRepetition;
-    }
-
-    public LinearSizeConstraint(int a, int b, bool allowRepetition = false) : this(new int2(a, b), allowRepetition) { }
-
-    // A*n + B
-    public int2 ConstraintFormula { get; private set; }
-    public int A => ConstraintFormula.x;
-    public int B => ConstraintFormula.y;
-
-    public bool AllowRepetition { get; private set; }
-
-    private List<int> Factorize(int number)
-    {
-        var factors = new List<int>();
-
-        for (int div = 2; div <= number; div++)
+        public LinearSizeConstraint(int2 constraintFormula, bool allowRepetition = false)
         {
-            while (number % div == 0)
-            {
-                factors.Add(div);
-                number = number / div;
-            }
+            ConstraintFormula = constraintFormula;
+            AllowRepetition = allowRepetition;
         }
 
-        return factors;
-    }
+        public LinearSizeConstraint(int a, int b, bool allowRepetition = false) : this(new int2(a, b), allowRepetition) { }
 
-    private List<int> GetAllFactorCombinations(List<int> factors)
-    {
-        List<int> combinations = new List<int>();
+        // A*n + B
+        public int2 ConstraintFormula { get; private set; }
+        public int A => ConstraintFormula.x;
+        public int B => ConstraintFormula.y;
 
-        for (int combination = 0; combination < Math.Pow(2, factors.Count); combination++)
+        public bool AllowRepetition { get; private set; }
+
+        private List<int> Factorize(int number)
         {
-            int product = 1;
-            BitArray b = new BitArray(new byte[] { (byte)combination });
-            bool[] bits = b.Cast<bool>().ToArray();
+            var factors = new List<int>();
 
-            for (int i = 0; i < bits.Length; i++)
+            for (int div = 2; div <= number; div++)
             {
-                if (bits[i])
+                while (number % div == 0)
                 {
-                    product *= factors[i];
+                    factors.Add(div);
+                    number = number / div;
                 }
             }
 
-            combinations.Add(product);
+            return factors;
         }
 
-        return combinations;
-    }
-
-    public int GetScalingFactor(int size)
-    {
-        if (size <= 0)
+        private List<int> GetAllFactorCombinations(List<int> factors)
         {
-            return -1;
-        }
+            List<int> combinations = new List<int>();
 
-        if (A == 0)
-        {
-            if (AllowRepetition)
+            for (int combination = 0; combination < Math.Pow(2, factors.Count); combination++)
             {
-                var factors = Factorize(B);
-                var multipliers = GetAllFactorCombinations(factors);
+                int product = 1;
+                BitArray b = new BitArray(new byte[] { (byte)combination });
+                bool[] bits = b.Cast<bool>().ToArray();
 
-                return multipliers
-                    .Where(m => size * m == B)
-                    .DefaultIfEmpty(-1)
-                    .FirstOrDefault();
+                for (int i = 0; i < bits.Length; i++)
+                {
+                    if (bits[i])
+                    {
+                        product *= factors[i];
+                    }
+                }
+
+                combinations.Add(product);
             }
 
-            return size == B ? 1 : -1;
+            return combinations;
         }
-        else
+
+        public int GetScalingFactor(int size)
         {
-            if (AllowRepetition)
+            if (size <= 0)
             {
-                var aFactors = Factorize(A)
-                    .GroupBy(f => f)
-                    .ToDictionary(keySelector: g => g.First(), elementSelector: g => g.Count());
-                var bFactors = Factorize(B)
-                    .GroupBy(f => f)
-                    .ToDictionary(keySelector: g => g.First(), elementSelector: g => g.Count());
-                var factors = aFactors
-                    .Select(kv => (kv.Key, Math.Min(kv.Value, bFactors.GetValueOrDefault(kv.Key, 0))))
-                    .SelectMany(kv => Enumerable.Repeat(kv.Key, kv.Item2))
-                    .ToList();
-
-                var multipliers = GetAllFactorCombinations(factors);
-
-                return multipliers
-                    .Where(m => m * size >= ConstraintFormula.y && ((m * size - ConstraintFormula.y) % ConstraintFormula.x == 0))
-                    .DefaultIfEmpty(-1)
-                    .FirstOrDefault();
+                return -1;
             }
 
-            return size >= ConstraintFormula.y && ((size - ConstraintFormula.y) % ConstraintFormula.x == 0) ? 1 : -1;
-        }
-    }
+            if (A == 0)
+            {
+                if (AllowRepetition)
+                {
+                    var factors = Factorize(B);
+                    var multipliers = GetAllFactorCombinations(factors);
 
-    public bool Validate(int size) => GetScalingFactor(size) != -1;
-    public int GetSize(int seed) => ConstraintFormula.x * seed + ConstraintFormula.y;
+                    return multipliers
+                        .Where(m => size * m == B)
+                        .DefaultIfEmpty(-1)
+                        .FirstOrDefault();
+                }
+
+                return size == B ? 1 : -1;
+            }
+            else
+            {
+                if (AllowRepetition)
+                {
+                    var aFactors = Factorize(A)
+                        .GroupBy(f => f)
+                        .ToDictionary(keySelector: g => g.First(), elementSelector: g => g.Count());
+                    var bFactors = Factorize(B)
+                        .GroupBy(f => f)
+                        .ToDictionary(keySelector: g => g.First(), elementSelector: g => g.Count());
+                    var factors = aFactors
+                        .Select(kv => (kv.Key, Math.Min(kv.Value, bFactors.GetValueOrDefault(kv.Key, 0))))
+                        .SelectMany(kv => Enumerable.Repeat(kv.Key, kv.Item2))
+                        .ToList();
+
+                    var multipliers = GetAllFactorCombinations(factors);
+
+                    return multipliers
+                        .Where(m => m * size >= ConstraintFormula.y && ((m * size - ConstraintFormula.y) % ConstraintFormula.x == 0))
+                        .DefaultIfEmpty(-1)
+                        .FirstOrDefault();
+                }
+
+                return size >= ConstraintFormula.y && ((size - ConstraintFormula.y) % ConstraintFormula.x == 0) ? 1 : -1;
+            }
+        }
+
+        public bool Validate(int size) => GetScalingFactor(size) != -1;
+        public int GetSize(int seed) => ConstraintFormula.x * seed + ConstraintFormula.y;
+    }
 }
