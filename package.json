@@ -6,6 +6,9 @@
   "unity": "2022.3",
   "unityRelease": "5f1",
   "licensesUrl": "https://github.com/Alexiush/Dicer/blob/main/LICENSE.md",
+  "dependencies": {
+    "com.unity.2d.sprite": "1.0.0"
+  },
   "keywords": [
     "ProceduralGeneration",
     "Dice"
@@ -17,14 +20,14 @@
   },
   "samples": [
     {
-      "displayName": "UI Dice",
+      "displayName": "UI dice",
       "description": "Example on how die generation and die rendering features of Dicer can be used to display dice in UI",
-      "path": "Samples~/BaseDocument"
+      "path": "Samples~/UI"
     },
     {
-      "displayName": "Tutorial with illustrations",
+      "displayName": "Worldspace dice",
       "description": "Example on interactive dice created with Dicer",
-      "path": "Samples~/TutorialExample"
+      "path": "Samples~/Worldspace"
     }
   ]
 }
