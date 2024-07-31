@@ -1,9 +1,9 @@
-# Dicer
+# Dicer 🎲
 
-Dicer is a package for generating and managing 3d dice of any size. 
-It includes creating dice procedurally, performing actual and fake rolls and using it all in 2d via automatic prerendering.
+Dicer is a package for generating and managing dice of any size. 
+It includes creating dice procedurally, performing actual and fake rolls and using it all in 2d via automated prerendering.
 
-Currently it includes only three types shapes: tetrahedron, trapezohedra and bipyramids, which are not that popular, but allow creating fair dice of any size. 
+Currently it includes only three types of shapes: tetrahedron, trapezohedra and bipyramids, which are not that popular, but allow creating fair dice of any size. 
 > Odd numbers are represented through repetition 🤓
 
 ## Usage
@@ -14,7 +14,7 @@ The package can be installed through the UPM by the link `https://github.com/Ale
 
 ### In 3D (Worldspace)
 
-To create dice with Dicer a `ProceduralDie` component should be added to the GameObject. 
+To create a die with Dicer a `ProceduralDie` component should be added to the GameObject. 
 Then you can proceed with setting the parameters of your dice and it's visuals: shape, number of sides, material, sides texture resolution and sources.
 
 There are also other useful components for interactive dice: 
@@ -22,7 +22,7 @@ There are also other useful components for interactive dice:
 * `DiceThrower` - Creating artificial force and torque to immitate throw and sending events about the throw results
 * `DiceRotator` - Rotating dice towards the desired side
 
-The package contains examples of URP materials to use with Dicer's dice, the main point is in using cubemaps for the die material and `_Mask` texture for numbers or any other symbols on sides textures.
+The package contains examples of URP materials to use with Dicer's dice, the main point is in using cubemaps for the main material and `_Mask` texture for numbers or any other symbols on sides textures.
 
 ### In 2D (UI)
 
@@ -36,7 +36,7 @@ There are also UI components for both legacy UI and UI Toolkit that use this dat
 * Optimal texturing
 * Special effects for rolling, throwing, etc (Blur is prioritized)
 
-> In a current state Dicer contains some parts that may be not absolutely correct or pretty underoptimized 😢, Fixing this is also on the roadmap
+> In a current state Dicer contains some parts that may not be absolutely correct or pretty underoptimized 😢, Fixing this is also on the roadmap
 
 ## Credits
 
